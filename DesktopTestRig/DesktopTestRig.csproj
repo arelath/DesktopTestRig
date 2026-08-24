@@ -7,13 +7,14 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Platforms>AnyCPU;x86;x64</Platforms>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Description>WPF application automation library.</Description>
+    <Description>Windows desktop UI automation library for WPF and Windows Forms applications.</Description>
     <PackageTags>WPF;Automation;Testing;UI</PackageTags>
-    <PackageProjectUrl>https://DesktopTestRig.local</PackageProjectUrl>
-    <RepositoryUrl>https://DesktopTestRig.local/repository</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/arelath/DesktopTestRig</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/arelath/DesktopTestRig</RepositoryUrl>
     <IsPackable>true</IsPackable>
     <PackageId>DesktopTestRig</PackageId>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
     <!-- Payload and native injector DLLs are executable content, not compile references. -->
     <NoWarn>$(NoWarn);NU5100</NoWarn>
   </PropertyGroup>
@@ -32,6 +33,7 @@
     <None Include="$(ArtifactsStagingRoot)DesktopTestRigResources\**\*.*" Pack="true" PackagePath="contentFiles\any\any\DesktopTestRigResources\%(RecursiveDir)%(Filename)%(Extension)" PackageCopyToOutput="true" Visible="false" />
     <None Include="DesktopTestRig.targets" Pack="true" PackagePath="build\DesktopTestRig.targets" />
     <None Include="..\README.md" Pack="true" PackagePath="README.md" />
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="LICENSE.txt" />
   </ItemGroup>
 
   <Import Project="..\Shared\Protocol\DesktopTestRig.Protocol.projitems" />

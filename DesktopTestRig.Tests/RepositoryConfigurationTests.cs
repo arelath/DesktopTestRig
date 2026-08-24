@@ -415,6 +415,9 @@ public sealed class RepositoryConfigurationTests
 		Assert.That(buildScript, Does.Not.Contain("Directory.Packages.props"));
 		Assert.That(libraryProject, Does.Contain("$(ArtifactsStagingRoot)payloads"));
 		Assert.That(libraryProject, Does.Contain("PackageCopyToOutput=\"true\""));
+		Assert.That(libraryProject, Does.Contain("<Description>Windows desktop UI automation library for WPF and Windows Forms applications.</Description>"));
+		Assert.That(libraryProject, Does.Contain("<PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>"));
+		Assert.That(libraryProject, Does.Contain("<None Include=\"..\\LICENSE.txt\" Pack=\"true\" PackagePath=\"LICENSE.txt\" />"));
 		Assert.That(libraryProject, Does.Not.Contain("ffmpeg.exe"));
 		Assert.That(libraryProject, Does.Not.Contain("BlockIncompleteDirectSdkPack"));
 	}
