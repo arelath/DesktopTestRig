@@ -17,7 +17,7 @@
       "name": "pipe-status",
       "arguments": ["pipe", "status"],
       "targetBound": true,
-      "contains": ["DesktopTestPilot-cli-v1-pid", "\"isReusable\":true"],
+      "contains": ["DesktopTestRig-cli-v1-pid", "\"isReusable\":true"],
       "assertions": [{ "path": "data.response.activeConnectionCount", "minimum": 1 }]
     },
     {
@@ -28,7 +28,7 @@
     },
     {
       "name": "resolve-by-window-title",
-      "arguments": ["ping", "--window-title", "DesktopTestPilot HelloWorld"],
+      "arguments": ["ping", "--window-title", "DesktopTestRig HelloWorld"],
       "assertions": [{ "path": "data.target.processId", "equals": "{{PID}}" }]
     },
     {

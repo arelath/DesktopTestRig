@@ -1,4 +1,4 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
 public static class ExpressionPayloadOptions
 {

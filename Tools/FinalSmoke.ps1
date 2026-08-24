@@ -3,7 +3,7 @@ param(
   [Parameter(Mandatory = $true)]
   [int]$Pid,
 
-  [string]$CliPath = ".\artifacts\publish\DesktopTestPilot.Cli\Release\DesktopTestPilot.Cli.exe"
+  [string]$CliPath = ".\artifacts\publish\DesktopTestRig.Cli\Release\DesktopTestRig.Cli.exe"
 )
 
 Set-StrictMode -Version 2.0

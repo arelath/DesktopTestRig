@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Interop.Expressions.Visitors;
+namespace DesktopTestRig.Interop.Expressions.Visitors;
 
 using System.Collections.Generic;
 using System.Linq.Expressions;

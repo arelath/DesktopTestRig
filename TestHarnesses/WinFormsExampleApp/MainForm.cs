@@ -12,7 +12,7 @@ public sealed class MainForm : Form
 
 	public MainForm()
 	{
-		Text = "DesktopTestPilot WinForms Example";
+		Text = "DesktopTestRig WinForms Example";
 		Name = "MainForm";
 		StartPosition = FormStartPosition.CenterScreen;
 		ClientSize = new Size(520, 300);
@@ -100,7 +100,7 @@ public sealed class MainForm : Form
 		};
 		fileDialogButton.Click += (_, _) =>
 		{
-			using var dialog = new OpenFileDialog { Title = "DesktopTestPilot File Dialog", FileName = input.Text };
+			using var dialog = new OpenFileDialog { Title = "DesktopTestRig File Dialog", FileName = input.Text };
 			if (dialog.ShowDialog(this) == DialogResult.OK)
 				input.Text = dialog.FileName;
 		};

@@ -1,17 +1,17 @@
 # Payload Repacking
 
-The injected payload must be self-contained because the target process cannot be expected to resolve DesktopTestPilot's managed dependencies. The `Compile` target uses ILRepack to merge the payload and its approved dependency list.
+The injected payload must be self-contained because the target process cannot be expected to resolve DesktopTestRig's managed dependencies. The `Compile` target uses ILRepack to merge the payload and its approved dependency list.
 
 Outputs are staged under `artifacts/staging/payloads/`:
 
 ```text
 artifacts/staging/payloads/
-  netframework/DesktopTestPilot.dll
-  netcoreapp/DesktopTestPilot.dll
-  dotnet/DesktopTestPilot.dll
+  netframework/DesktopTestRig.dll
+  netcoreapp/DesktopTestRig.dll
+  dotnet/DesktopTestRig.dll
 ```
 
-`Shared/DesktopTestPilot.Frameworks.props` declares the supported target frameworks and runtime-family metadata. `DesktopTestPilot.Payload.csproj` derives `TargetFrameworks` from that shared declaration and marks the payload dependencies that ILRepack must internalize. `Shared/DesktopTestPilot.PayloadRepack.targets` consumes those evaluated MSBuild items directly; there is no C# framework map or generated dependency-list file.
+`Shared/DesktopTestRig.Frameworks.props` declares the supported target frameworks and runtime-family metadata. `DesktopTestRig.Payload.csproj` derives `TargetFrameworks` from that shared declaration and marks the payload dependencies that ILRepack must internalize. `Shared/DesktopTestRig.PayloadRepack.targets` consumes those evaluated MSBuild items directly; there is no C# framework map or generated dependency-list file.
 
 ## Policy
 

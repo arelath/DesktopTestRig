@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>DesktopTestRig.Tests</RootNamespace>
+    <AssemblyName>DesktopTestRig.Payload.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <DefineConstants>$(DefineConstants);DesktopTestRig_INJECTOR_TESTS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <ProjectReference Include="..\DesktopTestRig.Payload\DesktopTestRig.Payload.csproj" />
+    <ProjectReference Include="..\TestHarnesses\HelloWorld\HelloWorld.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Compile Include="PayloadAssemblyBoundaryTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\AdapterRegistrationTests.cs" Link="AdapterRegistrationTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\BindingFailureCaptureServiceTests.cs" Link="BindingFailureCaptureServiceTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\DiagnosticHelperButton.cs" Link="DiagnosticHelperButton.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\ExpressionCacheTests.cs" Link="ExpressionCacheTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\FindElementCommandTests.cs" Link="FindElementCommandTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\GetVisualTreeCommandTests.cs" Link="GetVisualTreeCommandTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\HelloWorldHarnessParityTests.cs" Link="HelloWorldHarnessParityTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\NoIdleWorkTests.cs" Link="NoIdleWorkTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\PayloadLoggingTests.cs" Link="PayloadLoggingTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\PayloadStartupTests.cs" Link="PayloadStartupTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\ProtocolCommandTests.cs" Link="ProtocolCommandTests.cs" />
+	<Compile Include="..\DesktopTestRig.Tests\ReliabilityPackagingTests.cs" Link="ReliabilityPackagingTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\ReusablePipeSessionStreamingTests.cs" Link="ReusablePipeSessionStreamingTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\ReusablePipeSessionTests.cs" Link="ReusablePipeSessionTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\RuntimePatcherTests.cs" Link="RuntimePatcherTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\ScreenshotCommandTests.cs" Link="ScreenshotCommandTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\StreamingCommandTests.cs" Link="StreamingCommandTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\TargetActionCommandTests.cs" Link="TargetActionCommandTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\TargetIdServiceTests.cs" Link="TargetIdServiceTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\TargetObjectWrapperTests.cs" Link="TargetObjectWrapperTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\TestIpcHost.cs" Link="TestIpcHost.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\TreeServiceTests.cs" Link="TreeServiceTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\VisualTreePropertyExtractorTests.cs" Link="VisualTreePropertyExtractorTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\WinFormsSupportTests.cs" Link="WinFormsSupportTests.cs" />
+    <Compile Include="..\DesktopTestRig.Tests\WpfTestHelpers.cs" Link="WpfTestHelpers.cs" />
+    <Compile Include="..\DesktopTestRig\Interop\NamedPipeClient.cs" Link="TestSupport\NamedPipeClient.cs" />
+    <Compile Include="..\DesktopTestRig\Interop\NamedPipeSessionException.cs" Link="TestSupport\NamedPipeSessionException.cs" />
+    <Compile Include="..\Shared\InjectorData.cs" Link="TestSupport\InjectorData.cs" />
+    <Compile Include="..\DesktopTestRig.InjectorLauncher\*.cs" Link="TestSupport\InjectorLauncher\%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

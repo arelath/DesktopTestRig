@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Contracts;
+namespace DesktopTestRig.Contracts;
 
 public static class VisualTreeDefaults
 {

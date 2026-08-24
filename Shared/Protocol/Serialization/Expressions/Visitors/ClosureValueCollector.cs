@@ -1,11 +1,11 @@
-namespace DesktopTestPilot.Interop.Expressions.Visitors;
+namespace DesktopTestRig.Interop.Expressions.Visitors;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using DesktopTestPilot.Interop.Expressions;
+using DesktopTestRig.Interop.Expressions;
 
 internal sealed class ClosureValueCollector : ExpressionVisitor
 {

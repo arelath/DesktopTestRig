@@ -1,16 +1,16 @@
-# DesktopTestPilot
+# DesktopTestRig
 
-DesktopTestPilot is a UI automation framework for WPF and WinForms applications.
+DesktopTestRig is a UI automation framework for WPF and WinForms applications.
 It injects a lightweight payload into the target application so tests can query
 and interact with the visual tree directly. The same engine is exposed through
 three surfaces:
 
-- `DesktopTestPilot`: the C# test API for launching or attaching to applications,
+- `DesktopTestRig`: the C# test API for launching or attaching to applications,
   finding elements, sending actions, reading properties, screenshots, semantic
   recordings, binding failure capture, and dialog helpers.
-- `DesktopTestPilot.Cli`: a non-interactive command line interface for scripts and
+- `DesktopTestRig.Cli`: a non-interactive command line interface for scripts and
   agents.
-- `DesktopTestPilot.Mcp`: a local HTTP Model Context Protocol server for persistent
+- `DesktopTestRig.Mcp`: a local HTTP Model Context Protocol server for persistent
   agent sessions.
 
 See `HowToWriteTests.md` for library API examples,
@@ -34,7 +34,7 @@ For managed-code iteration, use the faster project scripts:
 
 ```powershell
 .\fastbuild.ps1 cli
-.\fasttest.ps1 core -Filter ProductConstantsUseDesktopTestPilotNames
+.\fasttest.ps1 core -Filter ProductConstantsUseDesktopTestRigNames
 ```
 
 ## CLI
@@ -53,23 +53,23 @@ from CLI defaults:
 Common inspection flow:
 
 ```powershell
-DesktopTestPilot.Cli.exe processes --pretty
-DesktopTestPilot.Cli.exe ping --pid <pid> --pretty
-DesktopTestPilot.Cli.exe tree --pid <pid> --max-depth 4 --pretty
-DesktopTestPilot.Cli.exe find --pid <pid> --automation-id SubmitButton --pretty
-DesktopTestPilot.Cli.exe node --pid <pid> --target <target-id> --pretty
-DesktopTestPilot.Cli.exe selectors --pid <pid> --target <target-id> --pretty
+DesktopTestRig.Cli.exe processes --pretty
+DesktopTestRig.Cli.exe ping --pid <pid> --pretty
+DesktopTestRig.Cli.exe tree --pid <pid> --max-depth 4 --pretty
+DesktopTestRig.Cli.exe find --pid <pid> --automation-id SubmitButton --pretty
+DesktopTestRig.Cli.exe node --pid <pid> --target <target-id> --pretty
+DesktopTestRig.Cli.exe selectors --pid <pid> --target <target-id> --pretty
 ```
 
 Common action flow:
 
 ```powershell
-DesktopTestPilot.Cli.exe click --pid <pid> --target <target-id> --after target --pretty
-DesktopTestPilot.Cli.exe wheel --pid <pid> --target <target-id> --delta -120 --after target --pretty
-DesktopTestPilot.Cli.exe type --pid <pid> --automation-id SearchBox --value "hello" --clear-first --after target --pretty
-DesktopTestPilot.Cli.exe key --pid <pid> --keys Ctrl+A --foreground false --pretty
-DesktopTestPilot.Cli.exe wait --pid <pid> --automation-id SubmitButton --require-enabled --timeout-ms 5000 --pretty
-DesktopTestPilot.Cli.exe screenshot --pid <pid> --target <target-id> --out capture.png
+DesktopTestRig.Cli.exe click --pid <pid> --target <target-id> --after target --pretty
+DesktopTestRig.Cli.exe wheel --pid <pid> --target <target-id> --delta -120 --after target --pretty
+DesktopTestRig.Cli.exe type --pid <pid> --automation-id SearchBox --value "hello" --clear-first --after target --pretty
+DesktopTestRig.Cli.exe key --pid <pid> --keys Ctrl+A --foreground false --pretty
+DesktopTestRig.Cli.exe wait --pid <pid> --automation-id SubmitButton --require-enabled --timeout-ms 5000 --pretty
+DesktopTestRig.Cli.exe screenshot --pid <pid> --target <target-id> --out capture.png
 ```
 
 Read commands include `processes`, `ping`, `pipe status`, `tree`, `find`,
@@ -81,31 +81,31 @@ Streaming commands include `visual-tree`, `visual-tree-delta`, `screenshot`,
 CLI defaults are editable:
 
 ```powershell
-DesktopTestPilot.Cli.exe config get --pretty
-DesktopTestPilot.Cli.exe config set common.process MyApp
-DesktopTestPilot.Cli.exe config set commands.tree.props "[\"Name\",\"Text\"]" --json
-DesktopTestPilot.Cli.exe config reset --yes
+DesktopTestRig.Cli.exe config get --pretty
+DesktopTestRig.Cli.exe config set common.process MyApp
+DesktopTestRig.Cli.exe config set commands.tree.props "[\"Name\",\"Text\"]" --json
+DesktopTestRig.Cli.exe config reset --yes
 ```
 
-For scripted safety, set `DesktopTestPilot_CLI_STRICT_ACTIONS=1`. In strict mode,
+For scripted safety, set `DesktopTestRig_CLI_STRICT_ACTIONS=1`. In strict mode,
 mutating commands require `--allow-actions`; raw `invoke --code` always
 requires `--allow-arbitrary-invoke`.
 
 ## Recorder
 
-`DesktopTestPilot.Recorder` is a WPF utility for attaching to a running windowed
+`DesktopTestRig.Recorder` is a WPF utility for attaching to a running windowed
 process and writing a semantic recording. It lists visible processes, lets you
-filter/select a target, and writes to `Documents\DesktopTestPilotRecordings` by
+filter/select a target, and writes to `Documents\DesktopTestRigRecordings` by
 default.
 
 The recorder uses the same injection and semantic recording pipeline as the
 library and CLI. Build through the solution or `.\build.ps1 Compile` so the
-output contains `payloads\*` and both `DesktopTestPilotResources\x86` and
-`DesktopTestPilotResources\x64`.
+output contains `payloads\*` and both `DesktopTestRigResources\x86` and
+`DesktopTestRigResources\x64`.
 
 Video recording requires an FFmpeg executable. It is intentionally not bundled
 with the core automation package. Install the optional
-`DesktopTestPilot.Media.FFmpeg` package, or set
+`DesktopTestRig.Media.FFmpeg` package, or set
 `AppDriver.RecordingFfmpegPathOverride` to an externally managed FFmpeg path.
 
 ## Semantic Recordings for Tests
@@ -139,14 +139,14 @@ var options = new AppDriverOptions
 ```
 
 Use `driver.MarkDiagnosticsFailure(exception)` for failures raised outside a
-DesktopTestPilot command or assertion. If the driver outlives an individual test,
+DesktopTestRig command or assertion. If the driver outlives an individual test,
 call `driver.CaptureFailureDiagnostics(exception, testName)` before resetting or
 shutting down the target. It writes and attaches the screenshot and visual tree
 immediately, uses the label as the manifest test name, and prevents teardown from
 retrying final-state capture against a dead target. Repeated calls use numbered
 artifact names so a shared driver can preserve more than one failed test.
 If the test framework already created a per-test failure-screenshot directory,
-pass it as the third argument to keep the entire DesktopTestPilot bundle beside those
+pass it as the third argument to keep the entire DesktopTestRig bundle beside those
 screenshots:
 
 ```csharp
@@ -175,7 +175,7 @@ values are rejected without changing the current timeout.
 For this repo's integration lane, use:
 
 ```powershell
-dotnet test .\DesktopTestPilot.Tests\DesktopTestPilot.Tests.csproj --filter "FullyQualifiedName~RunningProcessAttachIntegrationTests"
+dotnet test .\DesktopTestRig.Tests\DesktopTestRig.Tests.csproj --filter "FullyQualifiedName~RunningProcessAttachIntegrationTests"
 .\build.ps1 TestIntegration --no-test-recordings
 .\fasttest.ps1 core -Filter "FullyQualifiedName~RunningProcessAttachIntegrationTests" -NoTestRecordings
 ```
@@ -195,7 +195,7 @@ condensed text format details.
 
 ## MCP Agent Output
 
-`DesktopTestPilot.Mcp` exposes the compact agent profile by default:
+`DesktopTestRig.Mcp` exposes the compact agent profile by default:
 `deepflow_open_context`, `deepflow_observe`, `deepflow_find`, `deepflow_act`,
 `deepflow_wait`, `deepflow_capture`, `deepflow_diagnose`, and
 `deepflow_close_context`. Stateful calls require the `contextId` returned by

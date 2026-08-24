@@ -15,14 +15,14 @@ param(
 $ErrorActionPreference = "Stop"
 $repositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot ".."))
 $outputRoot = [System.IO.Path]::GetFullPath($OutputDirectory)
-$cliPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestPilot.Cli\$Configuration\net8.0-windows\DesktopTestPilot.Cli.exe"
-$mcpPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestPilot.Mcp\$Configuration\net8.0-windows\DesktopTestPilot.Mcp.exe"
+$cliPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestRig.Cli\$Configuration\net8.0-windows\DesktopTestRig.Cli.exe"
+$mcpPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestRig.Mcp\$Configuration\net8.0-windows\DesktopTestRig.Mcp.exe"
 $targetPath = Join-Path $repositoryRoot "artifacts\bin\HelloWorld\$Configuration\net8.0-windows\HelloWorld.exe"
 
 $requiredBinaries = @($cliPath, $mcpPath, $targetPath)
 foreach ($requiredBinary in $requiredBinaries) {
     if (-not (Test-Path -LiteralPath $requiredBinary -PathType Leaf)) {
-        throw "Required benchmark binary was not found: $requiredBinary. Build DesktopTestPilot.Mcp.Tests first."
+        throw "Required benchmark binary was not found: $requiredBinary. Build DesktopTestRig.Mcp.Tests first."
     }
 }
 

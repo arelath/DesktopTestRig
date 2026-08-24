@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Shared;
+namespace DesktopTestRig.Shared;
 
 using System;
 using System.Collections.Generic;

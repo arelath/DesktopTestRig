@@ -302,8 +302,8 @@ $runId = [DateTimeOffset]::UtcNow.ToString("yyyyMMdd-HHmmss-fff", [Globalization
 $runDirectory = Join-Path (Join-Path $outputRoot $scenarioId) $runId
 [System.IO.Directory]::CreateDirectory($runDirectory) | Out-Null
 
-$mcpPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestPilot.Mcp\$Configuration\net8.0-windows\DesktopTestPilot.Mcp.exe"
-$cliPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestPilot.Cli\$Configuration\net8.0-windows\DesktopTestPilot.Cli.exe"
+$mcpPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestRig.Mcp\$Configuration\net8.0-windows\DesktopTestRig.Mcp.exe"
+$cliPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestRig.Cli\$Configuration\net8.0-windows\DesktopTestRig.Cli.exe"
 $targetRelativePath = ([string] $scenario.targetExecutable).Replace("{{CONFIGURATION}}", $Configuration)
 $targetPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $targetRelativePath))
 $endpointFile = Join-Path $runDirectory "mcp-endpoint.json"
@@ -328,12 +328,12 @@ $startedAt = [DateTimeOffset]::UtcNow
 
 try {
     if (-not $SkipBuild) {
-        $payloadProject = Join-Path $repositoryRoot "DesktopTestPilot.Payload\DesktopTestPilot.Payload.csproj"
+        $payloadProject = Join-Path $repositoryRoot "DesktopTestRig.Payload\DesktopTestRig.Payload.csproj"
         & dotnet msbuild $payloadProject /t:RepackPayloads /p:Configuration=$Configuration /p:RootBuild=true /nologo
         if ($LASTEXITCODE -ne 0) {
             throw "Payload repack failed with exit code $LASTEXITCODE."
         }
-        foreach ($project in @("DesktopTestPilot.Mcp.Tests\DesktopTestPilot.Mcp.Tests.csproj")) {
+        foreach ($project in @("DesktopTestRig.Mcp.Tests\DesktopTestRig.Mcp.Tests.csproj")) {
             & dotnet build (Join-Path $repositoryRoot $project) --nologo --configuration $Configuration
             if ($LASTEXITCODE -ne 0) {
                 throw "Build failed for $project with exit code $LASTEXITCODE."

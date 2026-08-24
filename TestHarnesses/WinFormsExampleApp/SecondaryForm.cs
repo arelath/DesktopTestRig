@@ -7,7 +7,7 @@ public sealed class SecondaryForm : Form
 {
 	public SecondaryForm()
 	{
-		Text = "DesktopTestPilot Secondary WinForms Form";
+		Text = "DesktopTestRig Secondary WinForms Form";
 		Name = "SecondaryForm";
 		StartPosition = FormStartPosition.CenterParent;
 		ClientSize = new Size(320, 160);

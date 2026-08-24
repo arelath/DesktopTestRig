@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Utility.WpfUtility.Tree;
+namespace DesktopTestRig.Utility.WpfUtility.Tree;
 
 using System;
 

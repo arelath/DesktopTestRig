@@ -1,9 +1,9 @@
-namespace DesktopTestPilot.Contracts;
+namespace DesktopTestRig.Contracts;
 
 public static class ProtocolConstants
 {
-	public const string ProductName = DesktopTestPilot.ProductInfo.Name;
-	public const string PipePrefix = "DesktopTestPilot";
+	public const string ProductName = DesktopTestRig.ProductInfo.Name;
+	public const string PipePrefix = "DesktopTestRig";
 	public const string ProtocolVersion = "1";
 
 	public static class ControlConnectionModes

@@ -1,10 +1,10 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using DesktopTestPilot.Interop;
+using DesktopTestRig.Interop;
 
 public partial class Element
 {

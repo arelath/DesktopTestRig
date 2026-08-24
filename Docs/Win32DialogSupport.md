@@ -1,6 +1,6 @@
 # Win32 Dialog Support
 
-DesktopTestPilot discovers framework dialogs and native Win32 dialog windows owned by the target process. This includes common file dialogs, message boxes, and WPF modal windows.
+DesktopTestRig discovers framework dialogs and native Win32 dialog windows owned by the target process. This includes common file dialogs, message boxes, and WPF modal windows.
 
 ## Finding a dialog
 

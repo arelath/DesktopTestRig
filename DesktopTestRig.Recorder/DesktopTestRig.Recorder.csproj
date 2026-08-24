@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>DesktopTestRig.Recorder</RootNamespace>
+    <AssemblyName>DesktopTestRig.Recorder</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishDir>$(ArtifactsRoot)publish\$(MSBuildProjectName)\$(Configuration)\</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DesktopTestRig\DesktopTestRig.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Shared\DesktopTestRigPayloadLayout.targets" />
+</Project>

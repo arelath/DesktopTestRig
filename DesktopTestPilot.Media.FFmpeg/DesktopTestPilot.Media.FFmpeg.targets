@@ -1,8 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <_DesktopTestPilotFfmpegPackageRoot>$(MSBuildThisFileDirectory)..\contentFiles\any\any\DesktopTestPilotResources</_DesktopTestPilotFfmpegPackageRoot>
-  </PropertyGroup>
-  <ItemGroup Condition="Exists('$(_DesktopTestPilotFfmpegPackageRoot)\ffmpeg.exe')">
-    <None Include="$(_DesktopTestPilotFfmpegPackageRoot)\ffmpeg.exe" Link="DesktopTestPilotResources\ffmpeg.exe" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
-  </ItemGroup>
-</Project>

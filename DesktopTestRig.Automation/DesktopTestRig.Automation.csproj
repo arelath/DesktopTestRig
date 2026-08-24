@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>DesktopTestRig.Automation</RootNamespace>
+    <AssemblyName>DesktopTestRig.Automation</AssemblyName>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DesktopTestRig\DesktopTestRig.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Shared\DesktopTestRigPayloadLayout.targets" />
+</Project>

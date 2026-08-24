@@ -32,14 +32,14 @@ $workspaceLock = $null
 
 function Resolve-TestTarget([string]$name) {
   $targets = @{
-    "core" = @{ Project = "DesktopTestPilot.Tests\DesktopTestPilot.Tests.csproj"; Framework = "net8.0-windows" }
-    "core-tests" = @{ Project = "DesktopTestPilot.Tests\DesktopTestPilot.Tests.csproj"; Framework = "net8.0-windows" }
-    "payload" = @{ Project = "DesktopTestPilot.Payload.Tests\DesktopTestPilot.Payload.Tests.csproj"; Framework = "net8.0-windows" }
-    "payload-tests" = @{ Project = "DesktopTestPilot.Payload.Tests\DesktopTestPilot.Payload.Tests.csproj"; Framework = "net8.0-windows" }
-    "cli" = @{ Project = "DesktopTestPilot.Cli.Tests\DesktopTestPilot.Cli.Tests.csproj"; Framework = "net8.0-windows" }
-    "cli-tests" = @{ Project = "DesktopTestPilot.Cli.Tests\DesktopTestPilot.Cli.Tests.csproj"; Framework = "net8.0-windows" }
-    "mcp" = @{ Project = "DesktopTestPilot.Mcp.Tests\DesktopTestPilot.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
-    "mcp-tests" = @{ Project = "DesktopTestPilot.Mcp.Tests\DesktopTestPilot.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
+    "core" = @{ Project = "DesktopTestRig.Tests\DesktopTestRig.Tests.csproj"; Framework = "net8.0-windows" }
+    "core-tests" = @{ Project = "DesktopTestRig.Tests\DesktopTestRig.Tests.csproj"; Framework = "net8.0-windows" }
+    "payload" = @{ Project = "DesktopTestRig.Payload.Tests\DesktopTestRig.Payload.Tests.csproj"; Framework = "net8.0-windows" }
+    "payload-tests" = @{ Project = "DesktopTestRig.Payload.Tests\DesktopTestRig.Payload.Tests.csproj"; Framework = "net8.0-windows" }
+    "cli" = @{ Project = "DesktopTestRig.Cli.Tests\DesktopTestRig.Cli.Tests.csproj"; Framework = "net8.0-windows" }
+    "cli-tests" = @{ Project = "DesktopTestRig.Cli.Tests\DesktopTestRig.Cli.Tests.csproj"; Framework = "net8.0-windows" }
+    "mcp" = @{ Project = "DesktopTestRig.Mcp.Tests\DesktopTestRig.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
+    "mcp-tests" = @{ Project = "DesktopTestRig.Mcp.Tests\DesktopTestRig.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
   }
 
   if ($targets.ContainsKey($name)) {
@@ -79,7 +79,7 @@ if ($DotNetArguments) {
   $arguments += $DotNetArguments
 }
 if ($NoTestRecordings) {
-  $arguments += @("--", 'TestRunParameters.Parameter(name="DesktopTestPilotTestRecordings",value="off")')
+  $arguments += @("--", 'TestRunParameters.Parameter(name="DesktopTestRigTestRecordings",value="off")')
 }
 
 Push-Location $root

@@ -1,6 +1,6 @@
 # Compatibility
 
-DesktopTestPilot supports WPF and WinForms applications on .NET Framework and modern .NET. The payload is selected by runtime family and injected into the target process with matching x86 or x64 native resources.
+DesktopTestRig supports WPF and WinForms applications on .NET Framework and modern .NET. The payload is selected by runtime family and injected into the target process with matching x86 or x64 native resources.
 
 ## Runtime payloads
 
@@ -10,11 +10,11 @@ The build produces three payload families under `output/payloads/`:
 - `netcoreapp` for .NET Core 3.1 applications.
 - `dotnet` for .NET 5 and later Windows applications.
 
-Injector binaries and configuration files are staged under `DesktopTestPilotResources/x86` and `DesktopTestPilotResources/x64`.
+Injector binaries and configuration files are staged under `DesktopTestRigResources/x86` and `DesktopTestRigResources/x64`.
 
 ## API and protocol evolution
 
-Existing public types remain in the `DesktopTestPilot` namespace. Protocol version 1 uses stable command names, property names, status values, and error codes from `ProtocolConstants`.
+Existing public types remain in the `DesktopTestRig` namespace. Protocol version 1 uses stable command names, property names, status values, and error codes from `ProtocolConstants`.
 
 A new command is additive: older clients can continue using the commands they understand, while a target that does not recognize a newer command returns `unsupported-command`. Changes to existing request or response fields should remain backward compatible whenever possible.
 

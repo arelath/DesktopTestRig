@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <_DesktopTestRigPackageContentRoot>$(MSBuildThisFileDirectory)..\contentFiles\any\any</_DesktopTestRigPackageContentRoot>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(_DesktopTestRigPackageContentRoot)')">
+    <None Include="$(_DesktopTestRigPackageContentRoot)\payloads\**\*.*" Link="payloads\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(_DesktopTestRigPackageContentRoot)\DesktopTestRigResources\**\*.*" Link="DesktopTestRigResources\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+</Project>

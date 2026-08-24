@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Interop;
+namespace DesktopTestRig.Interop;
 
 using System;
 using System.Buffers;
@@ -7,7 +7,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using DesktopTestPilot.Contracts;
+using DesktopTestRig.Contracts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

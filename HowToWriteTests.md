@@ -1,6 +1,6 @@
-# How to Use DesktopTestPilot
+# How to Use DesktopTestRig
 
-DesktopTestPilot is a UI automation framework for WPF and WinForms applications. It works by injecting a lightweight payload directly into your application, allowing you to query and manipulate the visual tree instantly using standard C# expressions.
+DesktopTestRig is a UI automation framework for WPF and WinForms applications. It works by injecting a lightweight payload directly into your application, allowing you to query and manipulate the visual tree instantly using standard C# expressions.
 
 ## Getting Started
 
@@ -8,7 +8,7 @@ The main entry point for automation is the `AppDriver`. Wrap it in a `using` sta
 
 ```csharp
 using NUnit.Framework;
-using DesktopTestPilot;
+using DesktopTestRig;
 
 [TestFixture]
 public class MyFirstTest
@@ -41,7 +41,7 @@ var el4 = driver.GetElement(ElementSelector.ByType("Button"));
 ```
 
 ### 2. Using Expressions (Advanced & Powerful)
-DesktopTestPilot allows you to write queries that evaluate *inside* the target application. You can query any UI property using the indexer `["PropertyName"]`.
+DesktopTestRig allows you to write queries that evaluate *inside* the target application. You can query any UI property using the indexer `["PropertyName"]`.
 
 ```csharp
 // Find a button that contains the text "Save" and is enabled
@@ -93,7 +93,7 @@ loginBtn.Focus();
 ```
 
 ### Specialized UI Actions
-DesktopTestPilot knows how to interact with common WPF/WinForms controls without simulating raw mouse clicks:
+DesktopTestRig knows how to interact with common WPF/WinForms controls without simulating raw mouse clicks:
 
 ```csharp
 var checkbox = driver.GetElement(ElementSelector.ByName("RememberMe"));
@@ -125,7 +125,7 @@ textBlock.SetProperty("Text", "Loading complete...");
 
 ## Assertions
 
-DesktopTestPilot includes built-in assertion helpers that wait for the condition to be true before failing. It integrates cleanly with standard test frameworks (NUnit, xUnit, MSTest).
+DesktopTestRig includes built-in assertion helpers that wait for the condition to be true before failing. It integrates cleanly with standard test frameworks (NUnit, xUnit, MSTest).
 
 ```csharp
 var statusLabel = driver.GetElement(ElementSelector.ByAutomationId("StatusLabel"));
@@ -163,7 +163,7 @@ driver.Keyboard.Shortcut(input, "Control", "A"); // Select All
 
 ## Handling Dialogs
 
-Native Windows dialogs (like `MessageBox` or `OpenFileDialog`) block the UI thread. DesktopTestPilot provides specific extensions to handle these cleanly.
+Native Windows dialogs (like `MessageBox` or `OpenFileDialog`) block the UI thread. DesktopTestRig provides specific extensions to handle these cleanly.
 
 ```csharp
 // Click the button that opens the dialog
@@ -216,7 +216,7 @@ Here is what a full test looks like from start to finish:
 
 ```csharp
 using NUnit.Framework;
-using DesktopTestPilot;
+using DesktopTestRig;
 
 [TestFixture]
 public class LoginTests

@@ -1,6 +1,6 @@
 # How to Build and Test
 
-DesktopTestPilot requires a Windows .NET SDK and the Visual Studio Desktop development with C++ build tools. Run commands from the repository root.
+DesktopTestRig requires a Windows .NET SDK and the Visual Studio Desktop development with C++ build tools. Run commands from the repository root.
 
 ## Full build commands
 
@@ -46,11 +46,11 @@ The root build bounds ordinary build processes at fifteen minutes and individual
 
 ## Test recordings
 
-Integration tests produce semantic recordings by default. Pass `--no-test-recordings` to the root build, or `-NoTestRecordings` to `fasttest.ps1`, when recordings are intentionally disabled. The build maps this option to the NUnit run parameter `DesktopTestPilotTestRecordings`.
+Integration tests produce semantic recordings by default. Pass `--no-test-recordings` to the root build, or `-NoTestRecordings` to `fasttest.ps1`, when recordings are intentionally disabled. The build maps this option to the NUnit run parameter `DesktopTestRigTestRecordings`.
 
 ## Packaging Workflow
 
-Run `Compile`, `PublishCli`, and `Pack` from a clean checkout. `Pack` invokes standard SDK `dotnet pack` for `DesktopTestPilot.csproj` and the optional `DesktopTestPilot.Media.FFmpeg` project; NuGet derives dependency groups from the evaluated project references. Inspect `artifacts/staging`, `artifacts/publish`, and `artifacts/packages/<configuration>` before release. See `PayloadRepacking.md` for payload rules.
+Run `Compile`, `PublishCli`, and `Pack` from a clean checkout. `Pack` invokes standard SDK `dotnet pack` for `DesktopTestRig.csproj` and the optional `DesktopTestRig.Media.FFmpeg` project; NuGet derives dependency groups from the evaluated project references. Inspect `artifacts/staging`, `artifacts/publish`, and `artifacts/packages/<configuration>` before release. See `PayloadRepacking.md` for payload rules.
 
 All managed projects use project-isolated outputs:
 
@@ -61,5 +61,5 @@ artifacts/staging/payloads/<runtime-family>/
 artifacts/packages/<configuration>/
 ```
 
-The core package contains automation payloads and native injectors, but not FFmpeg. Install `DesktopTestPilot.Media.FFmpeg` only for video recording, or configure `AppDriver.RecordingFfmpegPathOverride` with a separately managed executable.
+The core package contains automation payloads and native injectors, but not FFmpeg. Install `DesktopTestRig.Media.FFmpeg` only for video recording, or configure `AppDriver.RecordingFfmpegPathOverride` with a separately managed executable.
 

@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>DesktopTestRig.Mcp</RootNamespace>
+    <AssemblyName>DesktopTestRig.Mcp</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishDir>$(ArtifactsRoot)publish\$(MSBuildProjectName)\$(Configuration)\</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <ProjectReference Include="..\DesktopTestRig.Automation\DesktopTestRig.Automation.csproj" />
+    <ProjectReference Include="..\DesktopTestRig\DesktopTestRig.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Shared\DesktopTestRigPayloadLayout.targets" />
+</Project>

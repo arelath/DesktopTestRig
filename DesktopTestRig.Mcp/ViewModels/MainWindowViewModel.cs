@@ -1,0 +1,587 @@
+namespace DesktopTestRig.Mcp.ViewModels;
+
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
+using DesktopTestRig.Contracts;
+using DesktopTestRig.Mcp.Activity;
+using DesktopTestRig.Mcp.Configuration;
+using DesktopTestRig.Mcp.Contracts;
+using DesktopTestRig.Mcp.Hosting;
+using Microsoft.Extensions.Options;
+
+internal sealed class MainWindowViewModel : INotifyPropertyChanged
+{
+	private readonly McpSessionHost sessionHost;
+	private readonly DeepFlowMcpHost serverHost;
+	private readonly McpStreamRegistry streamRegistry;
+	private readonly McpEndpointReporter endpointReporter;
+	private readonly McpActivityStore activityStore;
+	private readonly IOptions<McpServerOptions> options;
+	private readonly McpGuiSettingsStore settingsStore;
+	private readonly Dispatcher dispatcher;
+	private readonly DispatcherTimer refreshTimer;
+	private McpEndpointInfo endpointInfo = new();
+	private ActivityEventViewModel? selectedActivity;
+	private string? lastError;
+	private string attachPidText = string.Empty;
+	private string? attachProcessName;
+	private string? attachWindowTitle;
+	private string? launchPath;
+	private string? launchArguments;
+	private bool terminateOnDetach;
+	private bool virtualPointerEnabled;
+	private bool virtualPointerClickRipples = true;
+	private bool virtualPointerDragTrail = true;
+	private bool virtualPointerInScreenshots;
+	private string virtualPointerHideDelayMs = "800";
+	private string? activityFilter;
+
+	public MainWindowViewModel(
+		McpSessionHost sessionHost,
+		DeepFlowMcpHost serverHost,
+		McpStreamRegistry streamRegistry,
+		McpEndpointReporter endpointReporter,
+		McpActivityStore activityStore,
+		IOptions<McpServerOptions> options,
+		McpGuiSettingsStore settingsStore)
+	{
+		this.sessionHost = sessionHost ?? throw new ArgumentNullException(nameof(sessionHost));
+		this.serverHost = serverHost ?? throw new ArgumentNullException(nameof(serverHost));
+		this.streamRegistry = streamRegistry ?? throw new ArgumentNullException(nameof(streamRegistry));
+		this.endpointReporter = endpointReporter ?? throw new ArgumentNullException(nameof(endpointReporter));
+		this.activityStore = activityStore ?? throw new ArgumentNullException(nameof(activityStore));
+		this.options = options ?? throw new ArgumentNullException(nameof(options));
+		this.settingsStore = settingsStore ?? throw new ArgumentNullException(nameof(settingsStore));
+		dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
+
+		StartServerCommand = new AsyncRelayCommand(StartServerAsync, () => !serverHost.IsRunning);
+		StopServerCommand = new AsyncRelayCommand(StopServerAsync, () => serverHost.IsRunning);
+		PanicDetachCommand = new RelayCommand(PanicDetach);
+		CopyUrlCommand = new RelayCommand(CopyUrl, () => !string.IsNullOrWhiteSpace(StreamableHttpUrl));
+		AttachCommand = new RelayCommand(AttachTarget);
+		LaunchCommand = new RelayCommand(LaunchTarget);
+		ApplyVirtualPointerCommand = new RelayCommand(ApplyVirtualPointer);
+
+		LoadPersistedSettings();
+
+		endpointInfo = endpointReporter.Current;
+		foreach (var activity in activityStore.Snapshot())
+		{
+			var item = new ActivityEventViewModel(activity);
+			if (MatchesFilter(item))
+				ActivityEvents.Add(item);
+		}
+
+		endpointReporter.Changed += (_, info) => Dispatch(() =>
+		{
+			endpointInfo = info;
+			OnPropertyChanged(nameof(ServerStateText));
+			OnPropertyChanged(nameof(StreamableHttpUrl));
+			OnPropertyChanged(nameof(StatusLine));
+			RaiseCommandStates();
+		});
+		activityStore.ActivityPublished += (_, activity) => Dispatch(() =>
+		{
+			var item = new ActivityEventViewModel(activity);
+			if (MatchesFilter(item))
+				ActivityEvents.Add(item);
+		});
+
+		refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
+		{
+			Interval = TimeSpan.FromMilliseconds(600),
+		};
+		refreshTimer.Tick += (_, _) => RefreshTargetState();
+		refreshTimer.Start();
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	public ObservableCollection<ActivityEventViewModel> ActivityEvents { get; } = [];
+
+	public ObservableCollection<string> ActiveStreams { get; } = [];
+
+	public AsyncRelayCommand StartServerCommand { get; }
+
+	public AsyncRelayCommand StopServerCommand { get; }
+
+	public RelayCommand PanicDetachCommand { get; }
+
+	public RelayCommand CopyUrlCommand { get; }
+
+	public RelayCommand AttachCommand { get; }
+
+	public RelayCommand LaunchCommand { get; }
+
+	public RelayCommand ApplyVirtualPointerCommand { get; }
+
+	public string ServerStateText => endpointInfo.State switch
+	{
+		"running" => "Server running",
+		"starting" => "Server starting",
+		"failed" => "Server failed",
+		_ => "Server stopped",
+	};
+
+	public string StreamableHttpUrl => endpointInfo.StreamableHttpUrl ?? "Starting...";
+
+	public string StatusLine => $"{ServerStateText} | {TargetSummary}";
+
+	public string TargetSummary
+	{
+		get
+		{
+			var status = sessionHost.Status;
+			if (!status.Attached)
+				return "No target attached.";
+
+			return $"{status.ProcessName} ({status.ProcessId}) | {status.MainWindowTitle} | {status.FrameworkFamily}";
+		}
+	}
+
+	public string? LastError
+	{
+		get => lastError;
+		set
+		{
+			if (lastError == value)
+				return;
+
+			lastError = value;
+			OnPropertyChanged();
+		}
+	}
+
+	public ActivityEventViewModel? SelectedActivity
+	{
+		get => selectedActivity;
+		set
+		{
+			if (selectedActivity == value)
+				return;
+
+			selectedActivity = value;
+			OnPropertyChanged();
+			OnPropertyChanged(nameof(SelectedActivityDetails));
+		}
+	}
+
+	public string SelectedActivityDetails => selectedActivity?.DetailsText ?? string.Empty;
+
+	public string AttachPidText
+	{
+		get => attachPidText;
+		set => SetFieldAndSave(ref attachPidText, value);
+	}
+
+	public string? AttachProcessName
+	{
+		get => attachProcessName;
+		set => SetFieldAndSave(ref attachProcessName, value);
+	}
+
+	public string? AttachWindowTitle
+	{
+		get => attachWindowTitle;
+		set => SetFieldAndSave(ref attachWindowTitle, value);
+	}
+
+	public string? LaunchPath
+	{
+		get => launchPath;
+		set => SetFieldAndSave(ref launchPath, value);
+	}
+
+	public string? LaunchArguments
+	{
+		get => launchArguments;
+		set => SetFieldAndSave(ref launchArguments, value);
+	}
+
+	public bool TerminateOnDetach
+	{
+		get => terminateOnDetach;
+		set => SetFieldAndSave(ref terminateOnDetach, value);
+	}
+
+	public bool AllowLaunch
+	{
+		get => options.Value.Policy.AllowLaunch;
+		set
+		{
+			if (options.Value.Policy.AllowLaunch == value)
+				return;
+
+			options.Value.Policy.AllowLaunch = value;
+			OnPropertyChanged();
+			SaveSettings();
+		}
+	}
+
+	public bool AllowActions
+	{
+		get => options.Value.Policy.AllowActions;
+		set
+		{
+			if (options.Value.Policy.AllowActions == value)
+				return;
+
+			options.Value.Policy.AllowActions = value;
+			OnPropertyChanged();
+			SaveSettings();
+		}
+	}
+
+	public bool AllowArbitraryInvoke
+	{
+		get => options.Value.Policy.AllowArbitraryInvoke;
+		set
+		{
+			if (options.Value.Policy.AllowArbitraryInvoke == value)
+				return;
+
+			options.Value.Policy.AllowArbitraryInvoke = value;
+			OnPropertyChanged();
+			SaveSettings();
+		}
+	}
+
+	public bool AllowFileWrites
+	{
+		get => options.Value.Policy.AllowFileWrites;
+		set
+		{
+			if (options.Value.Policy.AllowFileWrites == value)
+				return;
+
+			options.Value.Policy.AllowFileWrites = value;
+			OnPropertyChanged();
+			SaveSettings();
+		}
+	}
+
+	public bool VirtualPointerEnabled
+	{
+		get => virtualPointerEnabled;
+		set => SetFieldAndSave(ref virtualPointerEnabled, value);
+	}
+
+	public bool VirtualPointerClickRipples
+	{
+		get => virtualPointerClickRipples;
+		set => SetFieldAndSave(ref virtualPointerClickRipples, value);
+	}
+
+	public bool VirtualPointerDragTrail
+	{
+		get => virtualPointerDragTrail;
+		set => SetFieldAndSave(ref virtualPointerDragTrail, value);
+	}
+
+	public bool VirtualPointerInScreenshots
+	{
+		get => virtualPointerInScreenshots;
+		set => SetFieldAndSave(ref virtualPointerInScreenshots, value);
+	}
+
+	public string VirtualPointerHideDelayMs
+	{
+		get => virtualPointerHideDelayMs;
+		set => SetFieldAndSave(ref virtualPointerHideDelayMs, value);
+	}
+
+	public string? ActivityFilter
+	{
+		get => activityFilter;
+		set
+		{
+			if (activityFilter == value)
+				return;
+
+			activityFilter = value;
+			OnPropertyChanged();
+			RefreshActivityFilter();
+			SaveSettings();
+		}
+	}
+
+	private void LoadPersistedSettings()
+	{
+		if (settingsStore.TryLoadIfExists(out var settings, out var error) && settings is not null)
+			ApplyPersistedSettings(settings);
+		else if (!string.IsNullOrWhiteSpace(error))
+			lastError = error;
+
+		ApplyStartupOptions();
+	}
+
+	private void ApplyPersistedSettings(McpGuiSettings settings)
+	{
+		attachPidText = settings.Target.AttachPidText;
+		attachProcessName = settings.Target.AttachProcessName;
+		attachWindowTitle = settings.Target.AttachWindowTitle;
+		launchPath = settings.Target.LaunchPath;
+		launchArguments = settings.Target.LaunchArguments;
+		terminateOnDetach = settings.Target.TerminateOnDetach;
+
+		var policy = options.Value.Policy;
+		policy.AllowLaunch = policy.AllowLaunch || settings.Policy.AllowLaunch;
+		policy.AllowActions = policy.AllowActions || settings.Policy.AllowActions;
+		policy.AllowArbitraryInvoke = policy.AllowArbitraryInvoke || settings.Policy.AllowArbitraryInvoke;
+		policy.AllowFileWrites = policy.AllowFileWrites || settings.Policy.AllowFileWrites;
+
+		virtualPointerEnabled = settings.VirtualPointer.Enabled;
+		virtualPointerClickRipples = settings.VirtualPointer.ShowClickRipples;
+		virtualPointerDragTrail = settings.VirtualPointer.ShowDragTrail;
+		virtualPointerInScreenshots = settings.VirtualPointer.IncludeInScreenshots;
+		virtualPointerHideDelayMs = settings.VirtualPointer.HideDelayMs;
+		activityFilter = settings.ActivityFilter;
+	}
+
+	private void ApplyStartupOptions()
+	{
+		var startup = options.Value.Startup;
+		if (startup.ProcessId.HasValue)
+			attachPidText = startup.ProcessId.Value.ToString(CultureInfo.InvariantCulture);
+		if (!string.IsNullOrWhiteSpace(startup.ProcessName))
+			attachProcessName = startup.ProcessName;
+		if (!string.IsNullOrWhiteSpace(startup.WindowTitle))
+			attachWindowTitle = startup.WindowTitle;
+		if (!string.IsNullOrWhiteSpace(startup.LaunchPath))
+			launchPath = startup.LaunchPath;
+		if (!string.IsNullOrWhiteSpace(startup.LaunchArguments))
+			launchArguments = startup.LaunchArguments;
+		if (startup.TerminateOnDetach)
+			terminateOnDetach = true;
+	}
+
+	private async Task StartServerAsync()
+	{
+		try
+		{
+			LastError = null;
+			await serverHost.StartAsync();
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = ex.Message;
+		}
+	}
+
+	private async Task StopServerAsync()
+	{
+		try
+		{
+			LastError = null;
+			await serverHost.StopAsync();
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = ex.Message;
+		}
+	}
+
+	private void PanicDetach()
+	{
+		try
+		{
+			LastError = null;
+			sessionHost.Detach();
+			RefreshTargetState();
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = ex.Message;
+		}
+	}
+
+	private void CopyUrl()
+	{
+		if (!string.IsNullOrWhiteSpace(endpointInfo.StreamableHttpUrl))
+			Clipboard.SetText(endpointInfo.StreamableHttpUrl);
+	}
+
+	private void AttachTarget()
+	{
+		try
+		{
+			LastError = null;
+			int? pid = string.IsNullOrWhiteSpace(AttachPidText) ? null : int.Parse(AttachPidText, CultureInfo.InvariantCulture);
+			sessionHost.Attach(new McpTargetSelector
+			{
+				ProcessId = pid,
+				ProcessName = string.IsNullOrWhiteSpace(AttachProcessName) ? null : AttachProcessName,
+				WindowTitle = string.IsNullOrWhiteSpace(AttachWindowTitle) ? null : AttachWindowTitle,
+			});
+			RefreshTargetState();
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = ex.Message;
+		}
+	}
+
+	private void LaunchTarget()
+	{
+		try
+		{
+			LastError = null;
+			sessionHost.Launch(new McpLaunchOptions
+			{
+				FileName = LaunchPath ?? string.Empty,
+				Arguments = LaunchArguments,
+				TerminateOnDetach = TerminateOnDetach,
+			});
+			RefreshTargetState();
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = ex.Message;
+		}
+	}
+
+	private void ApplyVirtualPointer()
+	{
+		try
+		{
+			LastError = null;
+			if (!int.TryParse(VirtualPointerHideDelayMs, System.Globalization.NumberStyles.Integer, CultureInfo.InvariantCulture, out var hideDelay))
+				throw new InvalidOperationException("Hide delay must be an integer.");
+
+			var pointer = new VirtualPointerOptionsDto
+			{
+				Enabled = VirtualPointerEnabled,
+				ShowClickRipples = VirtualPointerClickRipples,
+				ShowDragTrail = VirtualPointerDragTrail,
+				HideDelayMs = hideDelay,
+				IncludeInScreenshots = VirtualPointerInScreenshots,
+			};
+			sessionHost.Send<object>(new ConfigureDiagnosticsCommandRequest { VirtualPointer = pointer }, options.Value.DefaultTimeoutMs);
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = ex.Message;
+		}
+	}
+
+	private void RefreshTargetState()
+	{
+		OnPropertyChanged(nameof(TargetSummary));
+		OnPropertyChanged(nameof(StatusLine));
+		RefreshActiveStreams();
+	}
+
+	private void RefreshActiveStreams()
+	{
+		var active = streamRegistry.ListActiveStreams();
+		ActiveStreams.Clear();
+		foreach (var stream in active)
+			ActiveStreams.Add(stream);
+	}
+
+	private void RefreshActivityFilter()
+	{
+		ActivityEvents.Clear();
+		foreach (var activity in activityStore.Snapshot())
+		{
+			var item = new ActivityEventViewModel(activity);
+			if (MatchesFilter(item))
+				ActivityEvents.Add(item);
+		}
+	}
+
+	private bool MatchesFilter(ActivityEventViewModel item)
+	{
+		if (string.IsNullOrWhiteSpace(activityFilter))
+			return true;
+
+		var filter = activityFilter.Trim();
+		return Contains(item.Source, filter)
+			|| Contains(item.Kind, filter)
+			|| Contains(item.Name, filter)
+			|| Contains(item.Status, filter)
+			|| Contains(item.Summary, filter);
+	}
+
+	private static bool Contains(string? value, string filter) =>
+		value?.IndexOf(filter, StringComparison.OrdinalIgnoreCase) >= 0;
+
+	private void RaiseCommandStates()
+	{
+		StartServerCommand.RaiseCanExecuteChanged();
+		StopServerCommand.RaiseCanExecuteChanged();
+		CopyUrlCommand.RaiseCanExecuteChanged();
+	}
+
+	private void Dispatch(Action action)
+	{
+		if (dispatcher.CheckAccess())
+			action();
+		else
+			dispatcher.InvokeAsync(action);
+	}
+
+	private bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+	private void SetFieldAndSave<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (SetField(ref field, value, propertyName))
+			SaveSettings();
+	}
+
+	private void SaveSettings()
+	{
+		try
+		{
+			settingsStore.Save(new McpGuiSettings
+			{
+				Target = new McpGuiTargetSettings
+				{
+					AttachPidText = attachPidText,
+					AttachProcessName = attachProcessName,
+					AttachWindowTitle = attachWindowTitle,
+					LaunchPath = launchPath,
+					LaunchArguments = launchArguments,
+					TerminateOnDetach = terminateOnDetach,
+				},
+				Policy = new McpGuiPolicySettings
+				{
+					AllowLaunch = options.Value.Policy.AllowLaunch,
+					AllowActions = options.Value.Policy.AllowActions,
+					AllowArbitraryInvoke = options.Value.Policy.AllowArbitraryInvoke,
+					AllowFileWrites = options.Value.Policy.AllowFileWrites,
+				},
+				VirtualPointer = new McpGuiVirtualPointerSettings
+				{
+					Enabled = virtualPointerEnabled,
+					ShowClickRipples = virtualPointerClickRipples,
+					ShowDragTrail = virtualPointerDragTrail,
+					IncludeInScreenshots = virtualPointerInScreenshots,
+					HideDelayMs = virtualPointerHideDelayMs,
+				},
+				ActivityFilter = activityFilter,
+			});
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			LastError = $"MCP GUI settings could not be saved: {ex.Message}";
+		}
+	}
+
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null) =>
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}

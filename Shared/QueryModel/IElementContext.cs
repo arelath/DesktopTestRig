@@ -1,6 +1,6 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
-using DesktopTestPilot.Interop;
+using DesktopTestRig.Interop;
 
 internal interface IElementContext
 {

@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Interop;
+namespace DesktopTestRig.Interop;
 
 using System;
 using Newtonsoft.Json.Serialization;

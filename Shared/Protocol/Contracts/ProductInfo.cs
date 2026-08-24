@@ -1,6 +1,6 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
 public static class ProductInfo
 {
-	public const string Name = "DesktopTestPilot";
+	public const string Name = "DesktopTestRig";
 }

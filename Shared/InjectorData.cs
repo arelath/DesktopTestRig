@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Shared;
+namespace DesktopTestRig.Shared;
 
 public sealed class InjectorData
 {

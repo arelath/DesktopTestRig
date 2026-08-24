@@ -1,6 +1,6 @@
 # CLI end-to-end tests
 
-This suite launches real WPF and WinForms applications and drives them exclusively through the packaged `DesktopTestPilot.Cli.exe`. It validates response envelopes, exit codes, durable UI state, image signatures, stream lifecycles, and process cleanup.
+This suite launches real WPF and WinForms applications and drives them exclusively through the packaged `DesktopTestRig.Cli.exe`. It validates response envelopes, exit codes, durable UI state, image signatures, stream lifecycles, and process cleanup.
 
 Run the complete suite from the repository root:
 
@@ -23,8 +23,8 @@ Each command gets separate stdout and stderr logs under `artifacts\cli-e2e-suite
 
 Every CLI child process receives:
 
-- `DesktopTestPilot_CLI_CONFIG_PATH=<run>\cli-defaults.json`, so config tests never touch interactive defaults.
-- `DesktopTestPilot_CLI_STRICT_ACTIONS=1`, so mutating steps must explicitly pass `--allow-actions`.
+- `DesktopTestRig_CLI_CONFIG_PATH=<run>\cli-defaults.json`, so config tests never touch interactive defaults.
+- `DesktopTestRig_CLI_STRICT_ACTIONS=1`, so mutating steps must explicitly pass `--allow-actions`.
 
 The runner always closes the test window and force-terminates the full process tree if graceful shutdown fails.
 

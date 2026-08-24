@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)Shared\DesktopTestPilot.Frameworks.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Shared\DesktopTestRig.Frameworks.props" />
 
   <PropertyGroup>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
@@ -44,12 +44,12 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Company>DesktopTestPilot</Company>
-    <Product>DesktopTestPilot</Product>
+    <Company>DesktopTestRig</Company>
+    <Product>DesktopTestRig</Product>
     <Copyright>Copyright (c) $([System.DateTime]::Today.ToString(yyyy))</Copyright>
     <RepositoryType>git</RepositoryType>
     <PackageId Condition="'$(PackageId)' == ''">$(AssemblyName)</PackageId>
-    <Authors>DesktopTestPilot</Authors>
+    <Authors>DesktopTestRig</Authors>
   </PropertyGroup>
 
   <PropertyGroup>

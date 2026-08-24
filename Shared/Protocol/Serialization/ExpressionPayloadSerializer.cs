@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Interop;
+namespace DesktopTestRig.Interop;
 
 using System;
 using System.Collections.Generic;
@@ -6,9 +6,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
-using DesktopTestPilot;
-using DesktopTestPilot.Interop.Expressions;
-using DesktopTestPilot.Interop.Expressions.Visitors;
+using DesktopTestRig;
+using DesktopTestRig.Interop.Expressions;
+using DesktopTestRig.Interop.Expressions.Visitors;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serialize.Linq.Serializers;
@@ -119,5 +119,5 @@ public static class ExpressionPayloadSerializer
 		return BitConverter.ToString(hashBytes).Replace("-", string.Empty).ToLowerInvariant();
 	}
 
-	private static readonly ExpressionSerializer Serializer = new DesktopTestPilotSerializeLinqSerializer();
+	private static readonly ExpressionSerializer Serializer = new DesktopTestRigSerializeLinqSerializer();
 }

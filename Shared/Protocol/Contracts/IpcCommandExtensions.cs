@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Contracts;
+namespace DesktopTestRig.Contracts;
 
 using System.Collections.Generic;
 using System.Reflection;

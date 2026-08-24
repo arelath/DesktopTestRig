@@ -1,4 +1,4 @@
-name: DesktopTestPilot CI
+name: DesktopTestRig CI
 
 on:
   push:
@@ -35,5 +35,5 @@ jobs:
         shell: pwsh
       - uses: actions/upload-artifact@v4
         with:
-          name: DesktopTestPilot-artifacts
+          name: DesktopTestRig-artifacts
           path: artifacts/**

@@ -5,12 +5,12 @@
       "name": "help-text",
       "arguments": ["--help"],
       "parseJson": false,
-      "contains": ["DesktopTestPilot CLI", "Commands:", "screenshot", "record"]
+      "contains": ["DesktopTestRig CLI", "Commands:", "screenshot", "record"]
     },
     {
       "name": "version",
       "arguments": ["version"],
-      "contains": ["DesktopTestPilot"]
+      "contains": ["DesktopTestRig"]
     },
     {
       "name": "process-discovery",

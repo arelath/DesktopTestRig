@@ -1,7 +1,7 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
 using System;
-using DesktopTestPilot.Interop;
+using DesktopTestRig.Interop;
 
 internal sealed class SnapshotElementContext : IElementContext
 {

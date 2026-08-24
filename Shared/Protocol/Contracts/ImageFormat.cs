@@ -1,7 +1,7 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
 using System;
-using DesktopTestPilot.Contracts;
+using DesktopTestRig.Contracts;
 
 public enum ImageFormat
 {

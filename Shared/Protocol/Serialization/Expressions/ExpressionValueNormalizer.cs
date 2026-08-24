@@ -1,4 +1,4 @@
-namespace DesktopTestPilot.Interop.Expressions;
+namespace DesktopTestRig.Interop.Expressions;
 
 using System;
 using System.Collections;

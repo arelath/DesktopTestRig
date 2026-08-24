@@ -1,6 +1,6 @@
 # CLI Design
 
-`DesktopTestPilot.Cli` is a non-interactive frontend to the payload protocol. It writes compact JSON envelopes to stdout by default and diagnostics to stderr. `--pretty` formats JSON for people, while `--format text` is available for commands with stable text output.
+`DesktopTestRig.Cli` is a non-interactive frontend to the payload protocol. It writes compact JSON envelopes to stdout by default and diagnostics to stderr. `--pretty` formats JSON for people, while `--format text` is available for commands with stable text output.
 
 ## Command groups
 
@@ -16,7 +16,7 @@ Commands that address an application accept a PID, process name, or window-title
 
 `config get` shows the effective defaults. Command-line values override persisted defaults, which override built-in defaults.
 
-Set `DesktopTestPilot_CLI_STRICT_ACTIONS=1` in scripts that should deny mutations by default. With strict actions enabled, mutating commands require `--allow-actions`; arbitrary code invocation additionally requires `--allow-arbitrary-invoke`.
+Set `DesktopTestRig_CLI_STRICT_ACTIONS=1` in scripts that should deny mutations by default. With strict actions enabled, mutating commands require `--allow-actions`; arbitrary code invocation additionally requires `--allow-arbitrary-invoke`.
 
 Exit codes and JSON error codes are stable so scripts do not need to parse human-readable messages.
 

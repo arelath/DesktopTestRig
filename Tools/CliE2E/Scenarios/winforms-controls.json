@@ -64,7 +64,7 @@
       "name": "find-secondary-form",
       "arguments": ["wait", "--name", "SecondaryForm", "--require-visible", "--timeout-ms", "3000", "--props", "Name,Text,IsVisible"],
       "targetBound": true,
-      "contains": ["DesktopTestPilot Secondary WinForms Form"]
+      "contains": ["DesktopTestRig Secondary WinForms Form"]
     },
     {
       "name": "find-secondary-label",

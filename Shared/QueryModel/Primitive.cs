@@ -1,4 +1,4 @@
-namespace DesktopTestPilot;
+namespace DesktopTestRig;
 
 using System;
 using System.Globalization;

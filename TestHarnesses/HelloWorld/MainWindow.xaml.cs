@@ -181,7 +181,7 @@ public partial class MainWindow : Window
 
 		dragStartPoint = null;
 		AppendDragDropEvent("DragDropSource:DragStart");
-		DragDrop.DoDragDrop(source, "DesktopTestPilotDragPayload", DragDropEffects.Move);
+		DragDrop.DoDragDrop(source, "DesktopTestRigDragPayload", DragDropEffects.Move);
 	}
 
 	private void DragDropZone_MouseEnter(object sender, MouseEventArgs e)
@@ -237,7 +237,7 @@ public partial class MainWindow : Window
 
 	private static bool IsHarnessDragPayload(DragEventArgs e) =>
 		e.Data.GetDataPresent(DataFormats.StringFormat)
-		&& string.Equals(e.Data.GetData(DataFormats.StringFormat) as string, "DesktopTestPilotDragPayload", StringComparison.Ordinal);
+		&& string.Equals(e.Data.GetData(DataFormats.StringFormat) as string, "DesktopTestRigDragPayload", StringComparison.Ordinal);
 
 	private static void RaiseMouseEvent(UIElement target, RoutedEvent routedEvent)
 	{
@@ -250,7 +250,7 @@ public partial class MainWindow : Window
 
 	private static void RaiseDragEvent(UIElement target, RoutedEvent routedEvent)
 	{
-		var data = new DataObject(DataFormats.StringFormat, "DesktopTestPilotDragPayload");
+		var data = new DataObject(DataFormats.StringFormat, "DesktopTestRigDragPayload");
 		var args = CreateDragEventArgs(data, target);
 		args.RoutedEvent = routedEvent;
 		args.Source = target;
@@ -321,7 +321,7 @@ public partial class MainWindow : Window
 
 		var dialog = new OpenFileDialog
 		{
-			Title = "DesktopTestPilot Open File",
+			Title = "DesktopTestRig Open File",
 			CheckFileExists = true,
 			Multiselect = false,
 		};

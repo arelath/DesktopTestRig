@@ -1,0 +1,83 @@
+namespace DesktopTestRig.Tests;
+
+using DesktopTestRig.InjectorLauncher;
+using NUnit.Framework;
+
+[TestFixture]
+public sealed class InjectorLauncherOptionTests
+{
+	[Test]
+	public void ParsesRequiredAndOptionalOptions()
+	{
+		var ok = InjectorLauncherCommandLineOptions.TryParse(
+			new[]
+			{
+				"--targetPID", "123",
+				"--targetHwnd", "456",
+				"--assembly", "DesktopTestRig",
+				"--className", "Payload",
+				"--methodName", "Start",
+				"--startupArgument", "dft:value",
+				"--payloadRoot", @"C:\custom\payload root",
+				"--verbose",
+				"--debug",
+				"--attachConsoleToParent",
+			},
+			out var options,
+			out var error);
+
+		Assert.That(ok, Is.True, error);
+		Assert.That(options.TargetProcessId, Is.EqualTo(123));
+		Assert.That(options.TargetWindowHandle, Is.EqualTo(456));
+		Assert.That(options.Assembly, Is.EqualTo("DesktopTestRig"));
+		Assert.That(options.ClassName, Is.EqualTo("Payload"));
+		Assert.That(options.MethodName, Is.EqualTo("Start"));
+		Assert.That(options.StartupArgument, Is.EqualTo("dft:value"));
+		Assert.That(options.PayloadRoot, Is.EqualTo(@"C:\custom\payload root"));
+		Assert.That(options.Verbose, Is.True);
+		Assert.That(options.Debug, Is.True);
+		Assert.That(options.AttachConsoleToParent, Is.True);
+	}
+
+	[Test]
+	public void MissingRequiredOptionFailsWithoutThrowing()
+	{
+		var ok = InjectorLauncherCommandLineOptions.TryParse(
+			new[] { "--targetPID", "123", "--assembly", "DesktopTestRig", "--methodName", "Start" },
+			out _,
+			out var error);
+
+		Assert.That(ok, Is.False);
+		Assert.That(error, Does.Contain("className"));
+	}
+
+	[Test]
+	public void ParsesHwndOnlyTargetSelector()
+	{
+		var ok = InjectorLauncherCommandLineOptions.TryParse(
+			new[]
+			{
+				"--targetHwnd", "456",
+				"--assembly", "DesktopTestRig",
+				"--className", "Payload",
+				"--methodName", "Start",
+			},
+			out var options,
+			out var error);
+
+		Assert.That(ok, Is.True, error);
+		Assert.That(options.HasTargetProcessId, Is.False);
+		Assert.That(options.HasTargetWindowHandle, Is.True);
+		Assert.That(options.TargetWindowHandle, Is.EqualTo(456));
+	}
+
+	[Test]
+	public void ParsesHelpWithoutRequiredTargetOptions()
+	{
+		var ok = InjectorLauncherCommandLineOptions.TryParse(new[] { "--help" }, out var options, out var error);
+
+		Assert.That(ok, Is.True, error);
+		Assert.That(options.HelpRequested, Is.True);
+		Assert.That(InjectorLauncherCommandLineOptions.HelpText, Does.Contain("DesktopTestRig injector launcher"));
+	}
+}
