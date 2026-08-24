@@ -1,17 +1,17 @@
 # Payload Repacking
 
-The injected payload must be self-contained because the target process cannot be expected to resolve DeepFlowTest's managed dependencies. The `Compile` target uses ILRepack to merge the payload and its approved dependency list.
+The injected payload must be self-contained because the target process cannot be expected to resolve DesktopTestPilot's managed dependencies. The `Compile` target uses ILRepack to merge the payload and its approved dependency list.
 
 Outputs are staged under `artifacts/staging/payloads/`:
 
 ```text
 artifacts/staging/payloads/
-  netframework/DeepFlowTest.dll
-  netcoreapp/DeepFlowTest.dll
-  dotnet/DeepFlowTest.dll
+  netframework/DesktopTestPilot.dll
+  netcoreapp/DesktopTestPilot.dll
+  dotnet/DesktopTestPilot.dll
 ```
 
-`Shared/DeepFlowTest.Frameworks.props` declares the supported target frameworks and runtime-family metadata. `DeepFlowTest.Payload.csproj` derives `TargetFrameworks` from that shared declaration and marks the payload dependencies that ILRepack must internalize. `Shared/DeepFlowTest.PayloadRepack.targets` consumes those evaluated MSBuild items directly; there is no C# framework map or generated dependency-list file.
+`Shared/DesktopTestPilot.Frameworks.props` declares the supported target frameworks and runtime-family metadata. `DesktopTestPilot.Payload.csproj` derives `TargetFrameworks` from that shared declaration and marks the payload dependencies that ILRepack must internalize. `Shared/DesktopTestPilot.PayloadRepack.targets` consumes those evaluated MSBuild items directly; there is no C# framework map or generated dependency-list file.
 
 ## Policy
 

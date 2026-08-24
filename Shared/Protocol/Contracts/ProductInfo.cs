@@ -1,6 +1,6 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
 public static class ProductInfo
 {
-	public const string Name = "DeepFlowTest";
+	public const string Name = "DesktopTestPilot";
 }

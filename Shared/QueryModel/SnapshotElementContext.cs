@@ -1,7 +1,7 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
 using System;
-using DeepFlowTest.Interop;
+using DesktopTestPilot.Interop;
 
 internal sealed class SnapshotElementContext : IElementContext
 {

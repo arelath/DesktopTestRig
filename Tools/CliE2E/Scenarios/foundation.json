@@ -5,12 +5,12 @@
       "name": "help-text",
       "arguments": ["--help"],
       "parseJson": false,
-      "contains": ["DeepFlowTest CLI", "Commands:", "screenshot", "record"]
+      "contains": ["DesktopTestPilot CLI", "Commands:", "screenshot", "record"]
     },
     {
       "name": "version",
       "arguments": ["version"],
-      "contains": ["DeepFlowTest"]
+      "contains": ["DesktopTestPilot"]
     },
     {
       "name": "process-discovery",

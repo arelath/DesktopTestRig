@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Shared;
+namespace DesktopTestPilot.Shared;
 
 public sealed class InjectorData
 {

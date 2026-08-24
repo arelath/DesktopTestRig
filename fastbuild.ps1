@@ -28,14 +28,14 @@ $workspaceLock = $null
 
 function Resolve-Target([string]$name) {
   $targets = @{
-    "library" = @{ Project = "DeepFlowTest\DeepFlowTest.csproj"; Framework = "net5.0-windows" }
-    "core" = @{ Project = "DeepFlowTest\DeepFlowTest.csproj"; Framework = "net5.0-windows" }
-	"payload" = @{ Project = "DeepFlowTest.Payload\DeepFlowTest.Payload.csproj"; Framework = "net5.0-windows" }
-    "cli" = @{ Project = "DeepFlowTest.Cli\DeepFlowTest.Cli.csproj"; Framework = "net8.0-windows" }
-    "mcp" = @{ Project = "DeepFlowTest.Mcp\DeepFlowTest.Mcp.csproj"; Framework = "net8.0-windows" }
-    "core-tests" = @{ Project = "DeepFlowTest.Tests\DeepFlowTest.Tests.csproj"; Framework = "net8.0-windows" }
-	"payload-tests" = @{ Project = "DeepFlowTest.Payload.Tests\DeepFlowTest.Payload.Tests.csproj"; Framework = "net8.0-windows" }
-    "cli-tests" = @{ Project = "DeepFlowTest.Cli.Tests\DeepFlowTest.Cli.Tests.csproj"; Framework = "net8.0-windows" }
+    "library" = @{ Project = "DesktopTestPilot\DesktopTestPilot.csproj"; Framework = "net5.0-windows" }
+    "core" = @{ Project = "DesktopTestPilot\DesktopTestPilot.csproj"; Framework = "net5.0-windows" }
+	"payload" = @{ Project = "DesktopTestPilot.Payload\DesktopTestPilot.Payload.csproj"; Framework = "net5.0-windows" }
+    "cli" = @{ Project = "DesktopTestPilot.Cli\DesktopTestPilot.Cli.csproj"; Framework = "net8.0-windows" }
+    "mcp" = @{ Project = "DesktopTestPilot.Mcp\DesktopTestPilot.Mcp.csproj"; Framework = "net8.0-windows" }
+    "core-tests" = @{ Project = "DesktopTestPilot.Tests\DesktopTestPilot.Tests.csproj"; Framework = "net8.0-windows" }
+	"payload-tests" = @{ Project = "DesktopTestPilot.Payload.Tests\DesktopTestPilot.Payload.Tests.csproj"; Framework = "net8.0-windows" }
+    "cli-tests" = @{ Project = "DesktopTestPilot.Cli.Tests\DesktopTestPilot.Cli.Tests.csproj"; Framework = "net8.0-windows" }
     "hello" = @{ Project = "TestHarnesses\HelloWorld\HelloWorld.csproj"; Framework = "net8.0-windows" }
     "basic" = @{ Project = "TestHarnesses\BasicTestHarness\BasicTestHarness.csproj"; Framework = "net8.0-windows" }
   }

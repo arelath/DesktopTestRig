@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <TargetFrameworks>$(DesktopTestPilotTargetFrameworks)</TargetFrameworks>
+    <RootNamespace>DesktopTestPilot</RootNamespace>
+    <AssemblyName>DesktopTestPilot</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>WPF application automation library.</Description>
+    <PackageTags>WPF;Automation;Testing;UI</PackageTags>
+    <PackageProjectUrl>https://DesktopTestPilot.local</PackageProjectUrl>
+    <RepositoryUrl>https://DesktopTestPilot.local/repository</RepositoryUrl>
+    <IsPackable>true</IsPackable>
+    <PackageId>DesktopTestPilot</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Payload and native injector DLLs are executable content, not compile references. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\NativeMethods.cs" Link="Shared\NativeMethods.cs" />
+    <Compile Include="..\Shared\NativeMethods.Kernel32.cs" Link="Shared\NativeMethods.Kernel32.cs" />
+    <Compile Include="..\Shared\NativeMethods.User32.cs" Link="Shared\NativeMethods.User32.cs" />
+    <PackageReference Include="Microsoft.CSharp" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Serialize.Linq" />
+    <PackageReference Include="System.Buffers" />
+    <PackageReference Include="System.Memory" />
+    <PackageReference Include="System.ValueTuple" />
+    <None Include="$(ArtifactsStagingRoot)payloads\**\*.*" Pack="true" PackagePath="contentFiles\any\any\payloads\%(RecursiveDir)%(Filename)%(Extension)" PackageCopyToOutput="true" Visible="false" />
+    <None Include="$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.*" Pack="true" PackagePath="contentFiles\any\any\DesktopTestPilotResources\%(RecursiveDir)%(Filename)%(Extension)" PackageCopyToOutput="true" Visible="false" />
+    <None Include="DesktopTestPilot.targets" Pack="true" PackagePath="build\DesktopTestPilot.targets" />
+    <None Include="..\README.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
+
+  <Import Project="..\Shared\Protocol\DesktopTestPilot.Protocol.projitems" />
+  <Import Project="..\Shared\QueryModel\DesktopTestPilot.QueryModel.projitems" />
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net461" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="ValidateDesktopTestPilotPackageInputs" BeforeTargets="GenerateNuspec">
+    <PropertyGroup>
+      <_EvaluatedPayloadFrameworks>@(PayloadFramework, ';')</_EvaluatedPayloadFrameworks>
+    </PropertyGroup>
+    <Error Condition="'$(_EvaluatedPayloadFrameworks)' != '$(DesktopTestPilotTargetFrameworks)'" Text="DesktopTestPilotTargetFrameworks must match the PayloadFramework item identities and order." />
+    <Error Condition="'%(PayloadFramework.Family)' == ''" Text="PayloadFramework '%(PayloadFramework.Identity)' must declare Family metadata." />
+    <Error Condition="!Exists('$(ArtifactsStagingRoot)payloads')" Text="Payload staging is missing. Build the payloads before packing." />
+    <Error Condition="!Exists('$(ArtifactsStagingRoot)DesktopTestPilotResources')" Text="Injector staging is missing. Build the native injectors before packing." />
+  </Target>
+</Project>

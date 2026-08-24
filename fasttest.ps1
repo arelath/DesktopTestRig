@@ -32,14 +32,14 @@ $workspaceLock = $null
 
 function Resolve-TestTarget([string]$name) {
   $targets = @{
-    "core" = @{ Project = "DeepFlowTest.Tests\DeepFlowTest.Tests.csproj"; Framework = "net8.0-windows" }
-    "core-tests" = @{ Project = "DeepFlowTest.Tests\DeepFlowTest.Tests.csproj"; Framework = "net8.0-windows" }
-    "payload" = @{ Project = "DeepFlowTest.Payload.Tests\DeepFlowTest.Payload.Tests.csproj"; Framework = "net8.0-windows" }
-    "payload-tests" = @{ Project = "DeepFlowTest.Payload.Tests\DeepFlowTest.Payload.Tests.csproj"; Framework = "net8.0-windows" }
-    "cli" = @{ Project = "DeepFlowTest.Cli.Tests\DeepFlowTest.Cli.Tests.csproj"; Framework = "net8.0-windows" }
-    "cli-tests" = @{ Project = "DeepFlowTest.Cli.Tests\DeepFlowTest.Cli.Tests.csproj"; Framework = "net8.0-windows" }
-    "mcp" = @{ Project = "DeepFlowTest.Mcp.Tests\DeepFlowTest.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
-    "mcp-tests" = @{ Project = "DeepFlowTest.Mcp.Tests\DeepFlowTest.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
+    "core" = @{ Project = "DesktopTestPilot.Tests\DesktopTestPilot.Tests.csproj"; Framework = "net8.0-windows" }
+    "core-tests" = @{ Project = "DesktopTestPilot.Tests\DesktopTestPilot.Tests.csproj"; Framework = "net8.0-windows" }
+    "payload" = @{ Project = "DesktopTestPilot.Payload.Tests\DesktopTestPilot.Payload.Tests.csproj"; Framework = "net8.0-windows" }
+    "payload-tests" = @{ Project = "DesktopTestPilot.Payload.Tests\DesktopTestPilot.Payload.Tests.csproj"; Framework = "net8.0-windows" }
+    "cli" = @{ Project = "DesktopTestPilot.Cli.Tests\DesktopTestPilot.Cli.Tests.csproj"; Framework = "net8.0-windows" }
+    "cli-tests" = @{ Project = "DesktopTestPilot.Cli.Tests\DesktopTestPilot.Cli.Tests.csproj"; Framework = "net8.0-windows" }
+    "mcp" = @{ Project = "DesktopTestPilot.Mcp.Tests\DesktopTestPilot.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
+    "mcp-tests" = @{ Project = "DesktopTestPilot.Mcp.Tests\DesktopTestPilot.Mcp.Tests.csproj"; Framework = "net8.0-windows" }
   }
 
   if ($targets.ContainsKey($name)) {
@@ -79,7 +79,7 @@ if ($DotNetArguments) {
   $arguments += $DotNetArguments
 }
 if ($NoTestRecordings) {
-  $arguments += @("--", 'TestRunParameters.Parameter(name="DeepFlowTestTestRecordings",value="off")')
+  $arguments += @("--", 'TestRunParameters.Parameter(name="DesktopTestPilotTestRecordings",value="off")')
 }
 
 Push-Location $root

@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Build;
+namespace DesktopTestPilot.Build;
 
 using System;
 using System.Collections.Generic;
@@ -260,7 +260,7 @@ internal sealed class Build
 		if (noTestRecordings)
 		{
 			fullArgs.Add("--");
-			fullArgs.Add("TestRunParameters.Parameter(name=\"DeepFlowTestTestRecordings\",value=\"off\")");
+			fullArgs.Add("TestRunParameters.Parameter(name=\"DesktopTestPilotTestRecordings\",value=\"off\")");
 		}
 
 		RunProcess(dotnet, testTimeout, fullArgs.ToArray());
@@ -358,10 +358,10 @@ internal sealed class Build
 	private static string FindRepositoryRoot(string startDirectory)
 	{
 		var directory = new DirectoryInfo(startDirectory);
-		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "DeepFlowTest.sln")))
+		while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "DesktopTestPilot.sln")))
 			directory = directory.Parent;
 
-		return directory?.FullName ?? throw new DirectoryNotFoundException("DeepFlowTest repository root was not found.");
+		return directory?.FullName ?? throw new DirectoryNotFoundException("DesktopTestPilot repository root was not found.");
 	}
 
 	private static BuildOptions Parse(string[] args)
@@ -427,27 +427,27 @@ internal sealed class Build
 		return timeout;
 	}
 
-	private string MainSolution => Path.Combine(rootDirectory, "DeepFlowTest.sln");
+	private string MainSolution => Path.Combine(rootDirectory, "DesktopTestPilot.sln");
 
 	private string HarnessSolution => Path.Combine(rootDirectory, "TestHarnesses", "TestHarnesses.sln");
 
-	private string NativeInjectorProject => Path.Combine(rootDirectory, "DeepFlowTest.GenericInjector", "DeepFlowTest.GenericInjector.vcxproj");
+	private string NativeInjectorProject => Path.Combine(rootDirectory, "DesktopTestPilot.GenericInjector", "DesktopTestPilot.GenericInjector.vcxproj");
 
-	private string CoreTestsProject => Path.Combine(rootDirectory, "DeepFlowTest.Tests", "DeepFlowTest.Tests.csproj");
+	private string CoreTestsProject => Path.Combine(rootDirectory, "DesktopTestPilot.Tests", "DesktopTestPilot.Tests.csproj");
 
-	private string ClientProject => Path.Combine(rootDirectory, "DeepFlowTest", "DeepFlowTest.csproj");
+	private string ClientProject => Path.Combine(rootDirectory, "DesktopTestPilot", "DesktopTestPilot.csproj");
 
-	private string PayloadProject => Path.Combine(rootDirectory, "DeepFlowTest.Payload", "DeepFlowTest.Payload.csproj");
+	private string PayloadProject => Path.Combine(rootDirectory, "DesktopTestPilot.Payload", "DesktopTestPilot.Payload.csproj");
 
-	private string MediaPackageProject => Path.Combine(rootDirectory, "DeepFlowTest.Media.FFmpeg", "DeepFlowTest.Media.FFmpeg.csproj");
+	private string MediaPackageProject => Path.Combine(rootDirectory, "DesktopTestPilot.Media.FFmpeg", "DesktopTestPilot.Media.FFmpeg.csproj");
 
-	private string PayloadTestsProject => Path.Combine(rootDirectory, "DeepFlowTest.Payload.Tests", "DeepFlowTest.Payload.Tests.csproj");
+	private string PayloadTestsProject => Path.Combine(rootDirectory, "DesktopTestPilot.Payload.Tests", "DesktopTestPilot.Payload.Tests.csproj");
 
-	private string CliTestsProject => Path.Combine(rootDirectory, "DeepFlowTest.Cli.Tests", "DeepFlowTest.Cli.Tests.csproj");
+	private string CliTestsProject => Path.Combine(rootDirectory, "DesktopTestPilot.Cli.Tests", "DesktopTestPilot.Cli.Tests.csproj");
 
-	private string McpTestsProject => Path.Combine(rootDirectory, "DeepFlowTest.Mcp.Tests", "DeepFlowTest.Mcp.Tests.csproj");
+	private string McpTestsProject => Path.Combine(rootDirectory, "DesktopTestPilot.Mcp.Tests", "DesktopTestPilot.Mcp.Tests.csproj");
 
-	private string CliProject => Path.Combine(rootDirectory, "DeepFlowTest.Cli", "DeepFlowTest.Cli.csproj");
+	private string CliProject => Path.Combine(rootDirectory, "DesktopTestPilot.Cli", "DesktopTestPilot.Cli.csproj");
 
 	private sealed class BuildTarget
 	{

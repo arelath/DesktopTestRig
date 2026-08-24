@@ -30,12 +30,12 @@ $runOutputDirectory = Join-Path $suiteDirectory "runs"
 [System.IO.Directory]::CreateDirectory($runOutputDirectory) | Out-Null
 
 if (-not $SkipBuild) {
-    & dotnet msbuild (Join-Path $repositoryRoot "DeepFlowTest.Payload\DeepFlowTest.Payload.csproj") /t:RepackPayloads /p:Configuration=$Configuration /p:RootBuild=true /nologo
+    & dotnet msbuild (Join-Path $repositoryRoot "DesktopTestPilot.Payload\DesktopTestPilot.Payload.csproj") /t:RepackPayloads /p:Configuration=$Configuration /p:RootBuild=true /nologo
     if ($LASTEXITCODE -ne 0) {
         throw "Payload repack failed with exit code $LASTEXITCODE."
     }
     foreach ($project in @(
-        "DeepFlowTest.Cli.Tests\DeepFlowTest.Cli.Tests.csproj",
+        "DesktopTestPilot.Cli.Tests\DesktopTestPilot.Cli.Tests.csproj",
         "TestHarnesses\HelloWorld\HelloWorld.csproj",
         "TestHarnesses\BasicTestHarness\BasicTestHarness.csproj",
         "TestHarnesses\WinFormsExampleApp\WinFormsExampleApp.csproj"

@@ -1,4 +1,4 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
 public static class ExpressionPayloadOptions
 {

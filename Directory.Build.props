@@ -1,5 +1,5 @@
 <Project>
-  <Import Project="$(MSBuildThisFileDirectory)Shared\DeepFlowTest.Frameworks.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Shared\DesktopTestPilot.Frameworks.props" />
 
   <PropertyGroup>
     <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
@@ -44,12 +44,12 @@
 
   <PropertyGroup>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <Company>DeepFlowTest</Company>
-    <Product>DeepFlowTest</Product>
+    <Company>DesktopTestPilot</Company>
+    <Product>DesktopTestPilot</Product>
     <Copyright>Copyright (c) $([System.DateTime]::Today.ToString(yyyy))</Copyright>
     <RepositoryType>git</RepositoryType>
     <PackageId Condition="'$(PackageId)' == ''">$(AssemblyName)</PackageId>
-    <Authors>DeepFlowTest</Authors>
+    <Authors>DesktopTestPilot</Authors>
   </PropertyGroup>
 
   <PropertyGroup>

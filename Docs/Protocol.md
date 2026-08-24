@@ -1,10 +1,10 @@
 # Payload Protocol
 
-DeepFlowTest communicates with its in-process payload over a versioned named pipe. Each request names a command and carries command-specific fields. Responses use stable success, status, error-code, and correlation metadata.
+DesktopTestPilot communicates with its in-process payload over a versioned named pipe. Each request names a command and carries command-specific fields. Responses use stable success, status, error-code, and correlation metadata.
 
 ## Commands and errors
 
-Protocol command names and error codes are defined in `DeepFlowTest.Contracts.ProtocolConstants`. Common errors include `invalid-arguments`, `unsupported-command`, `unsupported-target`, `stale-target`, `command-timeout`, and `target-exited`.
+Protocol command names and error codes are defined in `DesktopTestPilot.Contracts.ProtocolConstants`. Common errors include `invalid-arguments`, `unsupported-command`, `unsupported-target`, `stale-target`, `command-timeout`, and `target-exited`.
 
 Target IDs identify live objects, not permanent selectors. A client should repeat its selector when a command returns `stale-target` and then retry only the safe operation it intended.
 

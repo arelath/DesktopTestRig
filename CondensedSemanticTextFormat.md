@@ -1,6 +1,6 @@
 # Condensed Semantic Text Format
 
-DeepFlowTest writes semantic recordings in a line-oriented text format named
+DesktopTestPilot writes semantic recordings in a line-oriented text format named
 `dft-condensed/1`. It is designed for humans and agents to scan UI behavior
 quickly without the noise of the full visual tree JSON.
 
@@ -8,8 +8,8 @@ The same format is used by:
 
 - automatic `.dft.txt` recordings from `AppDriver`
 - `SemanticRecordingOutputFormat.CondensedAgent`
-- `DeepFlowTest.Cli.exe record semantic` by default
-- `DeepFlowTest.Cli.exe stream semantic-recording --format text`
+- `DesktopTestPilot.Cli.exe record semantic` by default
+- `DesktopTestPilot.Cli.exe stream semantic-recording --format text`
 - MCP condensed visual tree, action `after`, and semantic recording outputs
 
 Use `compact-json` or `raw-json` when a tool needs a strict structured data
@@ -27,7 +27,7 @@ dft-condensed/1 profile=agent source=compact-json
 `dft-condensed/1` is the format version. `profile` is usually `agent`; the
 `condensed-diagnostic` writer uses `profile=diagnostic`. Both profiles currently
 share the same line grammar. `source=compact-json` means the text is rendered
-from DeepFlowTest's compact semantic frame model.
+from DesktopTestPilot's compact semantic frame model.
 
 ## Example
 

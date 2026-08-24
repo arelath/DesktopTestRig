@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>DesktopTestPilot.Mcp</RootNamespace>
+    <AssemblyName>DesktopTestPilot.Mcp</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <SelfContained>false</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <PublishDir>$(ArtifactsRoot)publish\$(MSBuildProjectName)\$(Configuration)\</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="ModelContextProtocol" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <ProjectReference Include="..\DesktopTestPilot.Automation\DesktopTestPilot.Automation.csproj" />
+    <ProjectReference Include="..\DesktopTestPilot\DesktopTestPilot.csproj" />
+  </ItemGroup>
+
+  <Import Project="..\Shared\DesktopTestPilotPayloadLayout.targets" />
+</Project>

@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Interop.Expressions;
+namespace DesktopTestPilot.Interop.Expressions;
 
 using System;
 using System.Collections;

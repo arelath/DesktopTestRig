@@ -7,7 +7,7 @@ public sealed class ModalDialogForm : Form
 {
 	public ModalDialogForm()
 	{
-		Text = "DeepFlowTest Modal WinForms Dialog";
+		Text = "DesktopTestPilot Modal WinForms Dialog";
 		Name = "ModalDialogForm";
 		StartPosition = FormStartPosition.CenterParent;
 		ClientSize = new Size(360, 180);

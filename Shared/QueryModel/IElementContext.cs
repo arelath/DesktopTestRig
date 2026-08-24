@@ -1,6 +1,6 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
-using DeepFlowTest.Interop;
+using DesktopTestPilot.Interop;
 
 internal interface IElementContext
 {

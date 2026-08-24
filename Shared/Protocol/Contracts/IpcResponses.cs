@@ -1,10 +1,10 @@
-namespace DeepFlowTest.Contracts;
+namespace DesktopTestPilot.Contracts;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using DeepFlowTest.Interop;
+using DesktopTestPilot.Interop;
 
 public sealed record class StandardIpcResponse
 {

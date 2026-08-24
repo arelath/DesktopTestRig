@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>DesktopTestPilot.Tests</RootNamespace>
+    <AssemblyName>DesktopTestPilot.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <DefineConstants>$(DefineConstants);DesktopTestPilot_INJECTOR_TESTS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <ProjectReference Include="..\DesktopTestPilot\DesktopTestPilot.csproj" />
+    <ProjectReference Include="..\DesktopTestPilot.Recorder\DesktopTestPilot.Recorder.csproj" />
+    <ProjectReference Include="..\TestHarnesses\HelloWorld\HelloWorld.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<!-- The legacy in-process end-to-end fixture loaded client and payload types with one CLR identity.
+	     Cross-process coverage remains in RunningProcessAttachIntegrationTests after the assembly split. -->
+	<Compile Remove="AdapterRegistrationTests.cs;AppDriverInProcessEndToEndTests.cs;BindingFailureCaptureServiceTests.cs;DiagnosticHelperButton.cs;ExpressionCacheTests.cs;FindElementCommandTests.cs;GetVisualTreeCommandTests.cs;HelloWorldHarnessParityTests.cs;NoIdleWorkTests.cs;PayloadLoggingTests.cs;PayloadStartupTests.cs;ProtocolCommandTests.cs;ReliabilityPackagingTests.cs;ReusablePipeSessionStreamingTests.cs;ReusablePipeSessionTests.cs;RuntimePatcherTests.cs;ScreenshotCommandTests.cs;StreamingCommandTests.cs;TargetActionCommandTests.cs;TargetIdServiceTests.cs;TargetObjectWrapperTests.cs;TestIpcHost.cs;TreeServiceTests.cs;VisualTreePropertyExtractorTests.cs;WinFormsSupportTests.cs;WpfTestHelpers.cs" />
+	<Compile Include="..\DesktopTestPilot.Payload\Interop\NamedPipeServer.cs" Link="TestSupport\NamedPipeServer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="Switch.System.Windows.Media.ShouldNotRenderInNonInteractiveWindowStation" Value="false" />
+    <RuntimeHostConfigurationOption Include="Switch.System.Windows.Media.ShouldRenderEvenWhenNoDisplayDevicesAreAvailable" Value="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\InjectorData.cs" Link="Linked\Shared\InjectorData.cs" />
+    <Compile Include="..\DesktopTestPilot.InjectorLauncher\*.cs" Link="Linked\InjectorLauncher\%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

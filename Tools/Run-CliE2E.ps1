@@ -192,17 +192,17 @@ $logDirectory = Join-Path $runDirectory "commands"
 $isolatedConfigPath = Join-Path $runDirectory "cli-defaults.json"
 
 if (-not $SkipBuild) {
-    & dotnet msbuild (Join-Path $repositoryRoot "DeepFlowTest.Payload\DeepFlowTest.Payload.csproj") /t:RepackPayloads /p:Configuration=$Configuration /p:RootBuild=true /nologo
+    & dotnet msbuild (Join-Path $repositoryRoot "DesktopTestPilot.Payload\DesktopTestPilot.Payload.csproj") /t:RepackPayloads /p:Configuration=$Configuration /p:RootBuild=true /nologo
     if ($LASTEXITCODE -ne 0) {
         throw "Payload repack failed with exit code $LASTEXITCODE."
     }
-    & dotnet build (Join-Path $repositoryRoot "DeepFlowTest.Cli\DeepFlowTest.Cli.csproj") --configuration $Configuration --nologo
+    & dotnet build (Join-Path $repositoryRoot "DesktopTestPilot.Cli\DesktopTestPilot.Cli.csproj") --configuration $Configuration --nologo
     if ($LASTEXITCODE -ne 0) {
         throw "CLI build failed with exit code $LASTEXITCODE."
     }
 }
 
-$cliPath = Join-Path $repositoryRoot "artifacts\bin\DeepFlowTest.Cli\$Configuration\net8.0-windows\DeepFlowTest.Cli.exe"
+$cliPath = Join-Path $repositoryRoot "artifacts\bin\DesktopTestPilot.Cli\$Configuration\net8.0-windows\DesktopTestPilot.Cli.exe"
 if (-not (Test-Path -LiteralPath $cliPath -PathType Leaf)) {
     throw "CLI executable was not found: $cliPath"
 }
@@ -265,8 +265,8 @@ try {
 
         $stepStarted = [DateTimeOffset]::UtcNow
         $captured = Start-CapturedProcess -FilePath $cliPath -Arguments $arguments.ToArray() -WorkingDirectory $repositoryRoot -Environment @{
-            DEEPFLOWTEST_CLI_CONFIG_PATH = $isolatedConfigPath
-            DEEPFLOWTEST_CLI_STRICT_ACTIONS = "1"
+            DesktopTestPilot_CLI_CONFIG_PATH = $isolatedConfigPath
+            DesktopTestPilot_CLI_STRICT_ACTIONS = "1"
         }
         $commandResult = Complete-CapturedProcess -Captured $captured -TimeoutSeconds $CommandTimeoutSeconds
         $elapsed = [long] ([DateTimeOffset]::UtcNow - $stepStarted).TotalMilliseconds

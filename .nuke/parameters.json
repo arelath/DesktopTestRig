@@ -1,5 +1,5 @@
 {
   "$schema": "https://nuke.build/parameters.schema.json",
-  "Solution": "DeepFlowTest.sln",
+  "Solution": "DesktopTestPilot.sln",
   "HarnessSolution": "TestHarnesses/TestHarnesses.sln"
 }

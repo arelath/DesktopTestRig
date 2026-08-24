@@ -81,7 +81,7 @@
       "name": "find-secondary-window",
       "arguments": ["wait", "--automation-id", "SecondaryHarnessWindow", "--require-visible", "--timeout-ms", "3000", "--props", "Title,AutomationProperties.AutomationId,IsVisible"],
       "targetBound": true,
-      "contains": ["DeepFlowTest Secondary Window"]
+      "contains": ["DesktopTestPilot Secondary Window"]
     },
     {
       "name": "find-secondary-content",

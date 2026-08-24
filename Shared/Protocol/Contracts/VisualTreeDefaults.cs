@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Contracts;
+namespace DesktopTestPilot.Contracts;
 
 public static class VisualTreeDefaults
 {

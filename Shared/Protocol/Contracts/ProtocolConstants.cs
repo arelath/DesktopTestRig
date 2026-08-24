@@ -1,9 +1,9 @@
-namespace DeepFlowTest.Contracts;
+namespace DesktopTestPilot.Contracts;
 
 public static class ProtocolConstants
 {
-	public const string ProductName = DeepFlowTest.ProductInfo.Name;
-	public const string PipePrefix = "deepflowtest";
+	public const string ProductName = DesktopTestPilot.ProductInfo.Name;
+	public const string PipePrefix = "DesktopTestPilot";
 	public const string ProtocolVersion = "1";
 
 	public static class ControlConnectionModes

@@ -1,7 +1,7 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
 using System;
-using DeepFlowTest.Contracts;
+using DesktopTestPilot.Contracts;
 
 public enum ImageFormat
 {

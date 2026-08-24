@@ -1,4 +1,4 @@
-name: DeepFlowTest CI
+name: DesktopTestPilot CI
 
 on:
   push:
@@ -35,5 +35,5 @@ jobs:
         shell: pwsh
       - uses: actions/upload-artifact@v4
         with:
-          name: DeepFlowTest-artifacts
+          name: DesktopTestPilot-artifacts
           path: artifacts/**

@@ -1,0 +1,19 @@
+<Project>
+  <Target Name="PrepareDesktopTestPilotPayloadLayout" AfterTargets="Build">
+    <ItemGroup>
+      <_DeepFlowPayload Include="$(ArtifactsStagingRoot)payloads\**\*.*" />
+      <_DeepFlowResource Include="$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.dll;$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.exe;$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.config;$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_DeepFlowPayload)" DestinationFiles="@(_DeepFlowPayload->'$(OutDir)payloads\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_DeepFlowResource)" DestinationFiles="@(_DeepFlowResource->'$(OutDir)DesktopTestPilotResources\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="PrepareDesktopTestPilotPayloadPublishLayout" AfterTargets="Publish">
+    <ItemGroup>
+      <_DeepFlowPublishPayload Include="$(ArtifactsStagingRoot)payloads\**\*.*" />
+      <_DeepFlowPublishResource Include="$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.dll;$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.exe;$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.config;$(ArtifactsStagingRoot)DesktopTestPilotResources\**\*.pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_DeepFlowPublishPayload)" DestinationFiles="@(_DeepFlowPublishPayload->'$(PublishDir)payloads\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_DeepFlowPublishResource)" DestinationFiles="@(_DeepFlowPublishResource->'$(PublishDir)DesktopTestPilotResources\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+</Project>

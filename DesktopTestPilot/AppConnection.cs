@@ -1,0 +1,238 @@
+namespace DesktopTestPilot;
+
+using System;
+using System.Diagnostics;
+using DesktopTestPilot.Utility;
+
+public sealed class AppConnection : IDisposable
+{
+	private bool disposed;
+
+	public AppConnection(AppConnectionOptions options)
+	{
+		_ = options ?? throw new ArgumentNullException(nameof(options));
+		TargetProcess = options.TargetProcess ?? throw new ArgumentNullException(nameof(options.TargetProcess));
+		OwnsProcess = options.OwnsProcess;
+		ReusesPipe = options.ReusesPipe;
+		PipeName = string.IsNullOrWhiteSpace(options.PipeName) ? throw new ArgumentException("Pipe name is required.", nameof(options)) : options.PipeName;
+		PayloadFrameworkFamily = options.PayloadFrameworkFamily ?? string.Empty;
+		InjectorState = options.InjectorState;
+		if (OwnsProcess)
+			RegisterOwnedProcessForParentClose(TargetProcess);
+	}
+
+	public ITargetProcess TargetProcess { get; }
+
+	public bool OwnsProcess { get; }
+
+	public bool ReusesPipe { get; private set; }
+
+	public string PipeName { get; }
+
+	public string PayloadFrameworkFamily { get; private set; }
+
+	public AppConnectionInjectorState InjectorState { get; private set; }
+
+	public string? LastStartupLog { get; private set; }
+
+	public bool IsDisposed => disposed;
+
+	internal static Action<ITargetProcess> RegisterOwnedProcessForParentClose { get; set; } = RegisterTargetProcessWithParentCloseTracker;
+
+	public void EnsurePipeOrInject(Func<AppConnection, bool> isPipeAvailable, IAppConnectionInjector injector, bool allowInjection)
+	{
+		ThrowIfDisposed();
+		_ = isPipeAvailable ?? throw new ArgumentNullException(nameof(isPipeAvailable));
+		_ = injector ?? throw new ArgumentNullException(nameof(injector));
+
+		if (isPipeAvailable(this))
+		{
+			ReusesPipe = true;
+			InjectorState = AppConnectionInjectorState.InjectionSkipped;
+			return;
+		}
+
+		ReusesPipe = false;
+		if (!allowInjection)
+		{
+			InjectorState = AppConnectionInjectorState.InjectionSkipped;
+			return;
+		}
+
+		InjectorState = AppConnectionInjectorState.Injecting;
+		try
+		{
+			var result = injector.Inject(this);
+			InjectorState = AppConnectionInjectorState.Injected;
+			PayloadFrameworkFamily = result.PayloadFrameworkFamily ?? PayloadFrameworkFamily;
+			LastStartupLog = result.StartupLogTail;
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
+			InjectorState = AppConnectionInjectorState.Failed;
+			LastStartupLog = injector.TryReadStartupLog(this);
+			throw new AppConnectionException(BuildInjectionFailureMessage(ex), ex, LastStartupLog);
+		}
+	}
+
+	public void Dispose()
+	{
+		if (disposed)
+			return;
+
+		disposed = true;
+		if (OwnsProcess && !TargetProcess.HasExited)
+			TargetProcess.Kill();
+
+		TargetProcess.Dispose();
+	}
+
+	private void ThrowIfDisposed()
+	{
+		if (disposed)
+			throw new ObjectDisposedException(nameof(AppConnection));
+	}
+
+	private static void RegisterTargetProcessWithParentCloseTracker(ITargetProcess process)
+	{
+		if (process is TargetProcess targetProcess)
+			ProcessCloseOnParentClose.Add(targetProcess.Process);
+	}
+
+	private static string BuildInjectionFailureMessage(Exception exception)
+	{
+		var detail = FirstNonEmptyLine(exception.Message);
+		return string.IsNullOrWhiteSpace(detail)
+			? "Target injection failed."
+			: $"Target injection failed: {detail}";
+	}
+
+	private static string FirstNonEmptyLine(string value)
+	{
+		using var reader = new System.IO.StringReader(value);
+		string? line;
+		while ((line = reader.ReadLine()) is not null)
+			if (!string.IsNullOrWhiteSpace(line))
+				return line.Trim();
+
+		return string.Empty;
+	}
+
+	public static AppConnection ForLaunch(ITargetProcess process, string pipeName, string payloadFrameworkFamily = "") =>
+		new(new AppConnectionOptions
+		{
+			TargetProcess = process,
+			OwnsProcess = true,
+			PipeName = pipeName,
+			PayloadFrameworkFamily = payloadFrameworkFamily,
+		});
+
+	public static AppConnection ForAttach(ITargetProcess process, string pipeName, string payloadFrameworkFamily = "") =>
+		new(new AppConnectionOptions
+		{
+			TargetProcess = process,
+			OwnsProcess = false,
+			PipeName = pipeName,
+			PayloadFrameworkFamily = payloadFrameworkFamily,
+		});
+}
+
+public sealed class AppConnectionOptions
+{
+	public ITargetProcess? TargetProcess { get; init; }
+
+	public bool OwnsProcess { get; init; }
+
+	public bool ReusesPipe { get; init; }
+
+	public string PipeName { get; init; } = string.Empty;
+
+	public string PayloadFrameworkFamily { get; init; } = string.Empty;
+
+	public AppConnectionInjectorState InjectorState { get; init; } = AppConnectionInjectorState.NotInjected;
+}
+
+public enum AppConnectionInjectorState
+{
+	NotInjected,
+	Injecting,
+	Injected,
+	InjectionSkipped,
+	Failed,
+}
+
+public interface IAppConnectionInjector
+{
+	AppConnectionInjectionResult Inject(AppConnection connection);
+
+	string? TryReadStartupLog(AppConnection connection);
+}
+
+public sealed class AppConnectionInjectionResult
+{
+	public string? PayloadFrameworkFamily { get; init; }
+
+	public string? StartupLogTail { get; init; }
+}
+
+public sealed class AppConnectionException : Exception
+{
+	public AppConnectionException(string message, Exception innerException, string? startupLogTail)
+		: base(message, innerException)
+	{
+		StartupLogTail = startupLogTail;
+	}
+
+	public string? StartupLogTail { get; }
+}
+
+public interface ITargetProcess : IDisposable
+{
+	int Id { get; }
+
+	string ProcessName { get; }
+
+	bool HasExited { get; }
+
+	int? ExitCode { get; }
+
+	void Kill();
+}
+
+public sealed class TargetProcess : ITargetProcess
+{
+	private readonly Process process;
+
+	public TargetProcess(Process process)
+	{
+		this.process = process ?? throw new ArgumentNullException(nameof(process));
+	}
+
+	public Process Process => process;
+
+	public int Id => process.Id;
+
+	public string ProcessName => process.ProcessName;
+
+	public bool HasExited => process.HasExited;
+
+	public int? ExitCode
+	{
+		get
+		{
+			try
+			{
+				process.Refresh();
+				return process.HasExited ? process.ExitCode : null;
+			}
+			catch (InvalidOperationException)
+			{
+				return null;
+			}
+		}
+	}
+
+	public void Kill() => process.Kill();
+
+	public void Dispose() => process.Dispose();
+}

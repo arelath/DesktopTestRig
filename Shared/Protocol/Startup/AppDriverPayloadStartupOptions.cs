@@ -1,8 +1,8 @@
-namespace DeepFlowTest.AppDriverPayload;
+namespace DesktopTestPilot.AppDriverPayload;
 
 using System;
 using System.IO;
-using DeepFlowTest.Contracts;
+using DesktopTestPilot.Contracts;
 using Newtonsoft.Json;
 
 public sealed class AppDriverPayloadStartupOptions
@@ -50,7 +50,7 @@ public sealed class AppDriverPayloadStartupOptions
 			return DecodeJsonFile(value.Substring(FilePrefix.Length));
 
 		if (!value.StartsWith(Prefix, StringComparison.Ordinal))
-			throw new ProtocolException(ProtocolConstants.ErrorCodes.StartupError, "Payload startup argument must use the DeepFlowTest encoded format.");
+			throw new ProtocolException(ProtocolConstants.ErrorCodes.StartupError, "Payload startup argument must use the DesktopTestPilot encoded format.");
 
 		var encoded = value.Substring(Prefix.Length)
 			.Replace('-', '+')

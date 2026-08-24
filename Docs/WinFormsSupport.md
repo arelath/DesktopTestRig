@@ -1,6 +1,6 @@
 # WinForms Support
 
-DeepFlowTest supports WinForms controls alongside WPF controls and native HWND targets. The same element selectors and action APIs are used across framework families.
+DesktopTestPilot supports WinForms controls alongside WPF controls and native HWND targets. The same element selectors and action APIs are used across framework families.
 
 ## Tree discovery
 

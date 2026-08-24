@@ -29,7 +29,7 @@ public partial class MainWindow : Window
 		var window = new Window
 		{
 			Owner = this,
-			Title = "DeepFlowTest Secondary Window",
+			Title = "DesktopTestPilot Secondary Window",
 			Name = "SecondaryHarnessWindow",
 			Width = 320,
 			Height = 180,
@@ -42,6 +42,6 @@ public partial class MainWindow : Window
 
 	private void ShowModalDialog_Click(object sender, RoutedEventArgs e)
 	{
-		MessageBox.Show(this, "Modal dialog content", "DeepFlowTest Modal Dialog", MessageBoxButton.OK, MessageBoxImage.Information);
+		MessageBox.Show(this, "Modal dialog content", "DesktopTestPilot Modal Dialog", MessageBoxButton.OK, MessageBoxImage.Information);
 	}
 }

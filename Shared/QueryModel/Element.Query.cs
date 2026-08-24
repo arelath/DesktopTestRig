@@ -1,10 +1,10 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using DeepFlowTest.Interop;
+using DesktopTestPilot.Interop;
 
 public partial class Element
 {

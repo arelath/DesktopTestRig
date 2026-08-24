@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Interop;
+namespace DesktopTestPilot.Interop;
 
 using System;
 using System.Buffers;
@@ -7,7 +7,7 @@ using System.IO.Compression;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using DeepFlowTest.Contracts;
+using DesktopTestPilot.Contracts;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

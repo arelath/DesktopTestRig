@@ -1,4 +1,4 @@
-Validate the DeepFlowTest MCP server against the already-running HelloWorld desktop application.
+Validate the DesktopTestPilot MCP server against the already-running HelloWorld desktop application.
 
 Use only the DeepFlow MCP tools configured for this run. Do not use shell commands, process tools, source-code inspection, or any other UI automation mechanism.
 If your environment requires you to read a UI-automation skill first, do not use its CLI workflow; continue this evaluation exclusively through the configured MCP tools.

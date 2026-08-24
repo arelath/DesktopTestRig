@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Interop;
+namespace DesktopTestPilot.Interop;
 
 using System;
 using Newtonsoft.Json.Serialization;

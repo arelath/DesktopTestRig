@@ -1,4 +1,4 @@
-namespace DeepFlowTest.Contracts;
+namespace DesktopTestPilot.Contracts;
 
 using System.Collections.Generic;
 using System.Reflection;

@@ -1,11 +1,11 @@
-namespace DeepFlowTest.Interop.Expressions.Visitors;
+namespace DesktopTestPilot.Interop.Expressions.Visitors;
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using DeepFlowTest.Interop.Expressions;
+using DesktopTestPilot.Interop.Expressions;
 
 internal sealed class ClosureValueCollector : ExpressionVisitor
 {

@@ -1,4 +1,4 @@
-namespace DeepFlowTest;
+namespace DesktopTestPilot;
 
 using System;
 using System.Globalization;
