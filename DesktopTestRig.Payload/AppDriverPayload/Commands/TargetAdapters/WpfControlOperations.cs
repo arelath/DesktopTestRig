@@ -109,7 +109,7 @@ internal static class WpfControlOperations
 			return ActionResult.Ok();
 
 		if (!menuItem.HasItems)
-			return WpfPointerInput.Click(menuItem, MouseButtonKind.Left, 1);
+			return WpfPointerInput.ClickMenuItem(menuItem);
 
 		UIHighlight.Select(menuItem);
 		WpfPointerInput.ReportVirtualPointerClick(menuItem);

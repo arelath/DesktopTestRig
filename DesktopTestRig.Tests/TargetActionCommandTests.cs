@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Controls.Ribbon;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -86,6 +87,126 @@ public sealed class TargetActionCommandTests
 
 			AssertOk(CaptureResponse(new KnownRoutedEventCommandRequest { TargetId = targetId, EventName = "Click" }));
 			Assert.That(clickCount, Is.EqualTo(4));
+		}
+		finally
+		{
+			window.Close();
+		}
+	}
+
+	[TestCase("Button")]
+	[TestCase("ToggleButton")]
+	[TestCase("CheckBox")]
+	[TestCase("RadioButton")]
+	[TestCase("RepeatButton")]
+	[TestCase("GridViewColumnHeader")]
+	[TestCase("RibbonButton")]
+	[TestCase("RibbonToggleButton")]
+	public void ClickExecutesWpfButtonBaseCommand(string controlType)
+	{
+		var commandCount = 0;
+		var button = CreateCommandButton(controlType, () => commandCount++);
+		var window = CreateWindow($"{controlType} command click", button);
+
+		try
+		{
+			window.Show();
+			var targetId = FindTargetId(button.Name);
+
+			AssertOk(CaptureResponse(new ClickCommandRequest { TargetId = targetId }));
+
+			Assert.That(commandCount, Is.EqualTo(1));
+		}
+		finally
+		{
+			window.Close();
+		}
+	}
+
+	[TestCase("MenuItem")]
+	[TestCase("RibbonMenuItem")]
+	public void ClickExecutesWpfMenuItemCommand(string controlType)
+	{
+		var commandCount = 0;
+		var menuItem = controlType switch
+		{
+			"MenuItem" => new MenuItem(),
+			"RibbonMenuItem" => new RibbonMenuItem(),
+			_ => throw new ArgumentOutOfRangeException(nameof(controlType), controlType, null),
+		};
+		menuItem.Name = "commandMenuItem";
+		menuItem.Header = "Create";
+		menuItem.Command = new TestCommand(() => commandCount++);
+		ContextMenu? contextMenu = null;
+		RibbonMenuButton? ribbonMenuButton = null;
+		FrameworkElement host;
+		if (menuItem is RibbonMenuItem ribbonMenuItem)
+		{
+			ribbonMenuButton = new RibbonMenuButton { Label = "Actions" };
+			ribbonMenuButton.Items.Add(ribbonMenuItem);
+			var group = new RibbonGroup { Header = "Commands" };
+			group.Items.Add(ribbonMenuButton);
+			var tab = new RibbonTab { Header = "Home" };
+			tab.Items.Add(group);
+			var ribbon = new Ribbon();
+			ribbon.Items.Add(tab);
+			host = ribbon;
+		}
+		else
+		{
+			contextMenu = new ContextMenu();
+			contextMenu.Items.Add(menuItem);
+			host = new Border
+			{
+				Width = 80,
+				Height = 40,
+				Background = Brushes.Transparent,
+				ContextMenu = contextMenu,
+			};
+		}
+		var window = CreateWindow($"{controlType} command click", host);
+
+		try
+		{
+			window.Show();
+			if (contextMenu is not null)
+				contextMenu.IsOpen = true;
+			if (ribbonMenuButton is not null)
+				ribbonMenuButton.IsDropDownOpen = true;
+			DoEvents();
+			var targetId = FindTargetId(menuItem.Name);
+
+			AssertOk(CaptureResponse(new ClickCommandRequest { TargetId = targetId }));
+
+			Assert.That(commandCount, Is.EqualTo(1));
+		}
+		finally
+		{
+			if (contextMenu is not null)
+				contextMenu.IsOpen = false;
+			if (ribbonMenuButton is not null)
+				ribbonMenuButton.IsDropDownOpen = false;
+			window.Close();
+		}
+	}
+
+	[Test]
+	public void ClickPreservesWpfButtonCommandException()
+	{
+		var button = CreateCommandButton(
+			"Button",
+			() => throw new InvalidOperationException("Command click failed."));
+		var window = CreateWindow("Command button exception", button);
+
+		try
+		{
+			window.Show();
+			var response = (StandardIpcResponse)CaptureResponse(
+				new ClickCommandRequest { TargetId = FindTargetId(button.Name) })!;
+
+			Assert.That(response.Success, Is.False);
+			Assert.That(response.Error, Does.Contain("Command click failed."));
+			Assert.That(response.Error, Does.Not.Contain("TargetInvocationException"));
 		}
 		finally
 		{
@@ -2134,6 +2255,26 @@ public sealed class TargetActionCommandTests
 		{
 			window.Close();
 		}
+	}
+
+	private static ButtonBase CreateCommandButton(string controlType, Action execute)
+	{
+		ButtonBase button = controlType switch
+		{
+			"Button" => new Button(),
+			"ToggleButton" => new ToggleButton(),
+			"CheckBox" => new CheckBox(),
+			"RadioButton" => new RadioButton(),
+			"RepeatButton" => new RepeatButton(),
+			"GridViewColumnHeader" => new GridViewColumnHeader(),
+			"RibbonButton" => new RibbonButton(),
+			"RibbonToggleButton" => new RibbonToggleButton(),
+			_ => throw new ArgumentOutOfRangeException(nameof(controlType), controlType, null),
+		};
+		button.Name = $"command{controlType}";
+		button.Content = "Create";
+		button.Command = new TestCommand(execute);
+		return button;
 	}
 
 	private static string FindTargetId(string name)

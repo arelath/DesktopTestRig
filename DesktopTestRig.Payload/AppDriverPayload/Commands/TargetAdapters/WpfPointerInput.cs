@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -19,6 +20,17 @@ using DesktopTestRig.Utility.WpfUtility.SelectionHighlight;
 internal static class WpfPointerInput
 {
 	private const BindingFlags EventArgumentBindings = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.FlattenHierarchy;
+	private static readonly MethodInfo ButtonBaseOnClickMethod =
+		typeof(ButtonBase).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic)
+		?? throw new MissingMethodException(typeof(ButtonBase).FullName, "OnClick");
+	private static readonly MethodInfo MenuItemClickItemMethod =
+		typeof(MenuItem).GetMethod(
+			"ClickItem",
+			BindingFlags.Instance | BindingFlags.NonPublic,
+			binder: null,
+			Type.EmptyTypes,
+			modifiers: null)
+		?? throw new MissingMethodException(typeof(MenuItem).FullName, "ClickItem()");
 
 	public static ActionResult Click(UIElement target, MouseButtonKind button, int clickCount)
 	{
@@ -81,7 +93,7 @@ internal static class WpfPointerInput
 					var menuHeaderHandled = mouseButton == MouseButton.Left && TryHandleMenuHeaderClick(target);
 					var observedDoubleClickDuringThisClick = observedDoubleClickCount != observedBeforeDoubleClick;
 					if (clickEvent is not null && observedClickCount == observedBeforeClick && !observedDoubleClickDuringThisClick && !menuHeaderHandled)
-						target.RaiseEvent(new RoutedEventArgs(clickEvent, target));
+						InvokePrimaryClick(target, clickEvent);
 				}
 			}
 			finally
@@ -111,6 +123,35 @@ internal static class WpfPointerInput
 			OpenContextMenu(target);
 
 		return ActionResult.Ok();
+	}
+
+	private static void InvokePrimaryClick(UIElement target, RoutedEvent clickEvent)
+	{
+		if (target is ButtonBase buttonBase && clickEvent == ButtonBase.ClickEvent)
+		{
+			InvokeWithoutWrapping(ButtonBaseOnClickMethod, buttonBase, null);
+			return;
+		}
+
+		if (target is MenuItem menuItem && clickEvent == MenuItem.ClickEvent)
+		{
+			InvokeMenuItemClickAndDrain(menuItem);
+			return;
+		}
+
+		target.RaiseEvent(new RoutedEventArgs(clickEvent, target));
+	}
+
+	private static void InvokeWithoutWrapping(MethodInfo method, object target, object[]? arguments)
+	{
+		try
+		{
+			method.Invoke(target, arguments);
+		}
+		catch (TargetInvocationException ex) when (ex.InnerException is not null)
+		{
+			ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+		}
 	}
 
 	public static ActionResult MouseWheel(UIElement target, int delta)
@@ -166,6 +207,25 @@ internal static class WpfPointerInput
 
 		VirtualPointerService.MoveTo(clickScreen, WpfWindowActivation.GetOwnerHwnd(target));
 		VirtualPointerService.Click(MouseButtonKind.Left, 1);
+	}
+
+	internal static ActionResult ClickMenuItem(MenuItem menuItem)
+	{
+		if (!menuItem.IsEnabled)
+			return ActionResult.Ok();
+
+		UIHighlight.Select(menuItem);
+		TryEnsureAppHooks();
+		using var syntheticMouseInput = AppHooks.BeginSyntheticMouseInput();
+		ReportVirtualPointerClick(menuItem);
+		InvokeMenuItemClickAndDrain(menuItem);
+		return ActionResult.Ok();
+	}
+
+	private static void InvokeMenuItemClickAndDrain(MenuItem menuItem)
+	{
+		InvokeWithoutWrapping(MenuItemClickItemMethod, menuItem, null);
+		menuItem.Dispatcher.Invoke(DispatcherPriority.Render, static () => { });
 	}
 
 	internal static void ReportVirtualPointerForKnownRoutedEvent(object target, string eventName)
