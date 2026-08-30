@@ -55,6 +55,24 @@ public sealed class DependencyIsolationTests
 	}
 
 	[Test]
+	public void PayloadLayoutProjectsBundleTheCurrentRepackedPayload()
+	{
+		var root = FindRepositoryRoot();
+		var configuration = new DirectoryInfo(TestContext.CurrentContext.TestDirectory).Parent?.Name
+			?? throw new InvalidOperationException("Could not determine the current test configuration.");
+		var stagedPayload = Path.Combine(root, "artifacts", "staging", "payloads", "dotnet", "DesktopTestRig.dll");
+		Assert.That(File.Exists(stagedPayload), Is.True, "Repacked dotnet payload should exist. Run .\\build.ps1 Compile before this test lane.");
+		var expected = File.ReadAllBytes(stagedPayload);
+
+		foreach (var projectName in new[] { "DesktopTestRig.Automation", "DesktopTestRig.Cli", "DesktopTestRig.Mcp", "DesktopTestRig.Recorder" })
+		{
+			var bundledPayload = Path.Combine(root, "artifacts", "bin", projectName, configuration, "net8.0-windows", "payloads", "dotnet", "DesktopTestRig.dll");
+			Assert.That(File.Exists(bundledPayload), Is.True, $"{projectName} should bundle the repacked dotnet payload.");
+			Assert.That(File.ReadAllBytes(bundledPayload), Is.EqualTo(expected), $"{projectName} bundled a stale dotnet payload.");
+		}
+	}
+
+	[Test]
 	public void RepackedDotnetPayloadDoesNotReferenceLooseThirdPartyAssemblies()
 	{
 		var root = FindRepositoryRoot();

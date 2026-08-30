@@ -146,6 +146,30 @@ public partial class MainWindow : Window
 		EventDisplay.Text = "ExpanderControl_Collapsed event triggered.";
 	}
 
+	private void ScrollingViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
+	{
+		if (Math.Abs(e.VerticalChange) > double.Epsilon)
+			EventDisplay.Text = $"ScrollingViewer scrolled to {e.VerticalOffset:0}.";
+	}
+
+	private void TreeViewItem_Expanded(object sender, RoutedEventArgs e)
+	{
+		if (ReferenceEquals(sender, e.OriginalSource) && sender is FrameworkElement { Name.Length: > 0 } item)
+			EventDisplay.Text = $"{item.Name} expanded.";
+	}
+
+	private void TreeViewItem_Collapsed(object sender, RoutedEventArgs e)
+	{
+		if (ReferenceEquals(sender, e.OriginalSource) && sender is FrameworkElement { Name.Length: > 0 } item)
+			EventDisplay.Text = $"{item.Name} collapsed.";
+	}
+
+	private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
+	{
+		if (ReferenceEquals(sender, e.OriginalSource) && sender is FrameworkElement { Name.Length: > 0 } item)
+			EventDisplay.Text = $"{item.Name} selected.";
+	}
+
 	private void MenuItemOne_Click(object sender, RoutedEventArgs e)
 	{
 		EventDisplay.Text = "MenuItemOne_Click event triggered.";

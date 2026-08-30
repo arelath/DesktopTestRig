@@ -125,7 +125,11 @@ public sealed class RepositoryConfigurationTests
 		Assert.That(buildScript, Does.Contain("new BuildTarget(\"TestFast\", TestFast, \"Compile\")"));
 		Assert.That(buildScript, Does.Contain("new BuildTarget(\"TestMcp\", TestMcp, \"Restore\")"));
 		Assert.That(buildScript, Does.Contain("RepackPayloads();"));
-		Assert.That(buildScript, Does.Contain("RunDotNet(\"build\", CliProject"));
+		Assert.That(buildScript, Does.Contain("foreach (var payloadLayoutProject in PayloadLayoutProjects)"));
+		Assert.That(buildScript, Does.Contain("AutomationProject,"));
+		Assert.That(buildScript, Does.Contain("CliProject,"));
+		Assert.That(buildScript, Does.Contain("McpProject,"));
+		Assert.That(buildScript, Does.Contain("RecorderProject,"));
 	}
 
 	[Test]

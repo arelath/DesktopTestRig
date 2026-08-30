@@ -437,7 +437,7 @@ internal sealed class AutomaticDiagnosticsSession
 			RecordDiagnostic(entry.Severity, entry.Code, entry.Message, entry.Exception);
 	}
 
-	private void RecordDiagnostic(AppDriverDiagnosticSeverity severity, string code, string message, Exception? exception = null)
+	internal void RecordDiagnostic(AppDriverDiagnosticSeverity severity, string code, string message, Exception? exception = null)
 	{
 		var diagnostic = new AppDriverDiagnostic { Severity = severity, Code = code, Message = message, Exception = exception };
 		diagnostics.Add(diagnostic);

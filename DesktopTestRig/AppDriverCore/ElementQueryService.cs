@@ -12,7 +12,8 @@ internal sealed class ElementQueryService(
 	ElementMatcherPlanner matcherPlanner,
 	ElementWaiter waiter,
 	VisualTreeClient visualTreeClient,
-	ElementFactory elementFactory)
+	ElementFactory elementFactory,
+	Action<LambdaExpression> reportClientSideEvaluation)
 {
 	private const int NoMatchDiagnosticMaxNodeCount = VisualTreeDefaults.DefaultMaxNodeCount;
 	private const int NoMatchDiagnosticMaxElements = 25;
@@ -22,6 +23,7 @@ internal sealed class ElementQueryService(
 	private readonly ElementWaiter waiter = waiter ?? throw new ArgumentNullException(nameof(waiter));
 	private readonly VisualTreeClient visualTreeClient = visualTreeClient ?? throw new ArgumentNullException(nameof(visualTreeClient));
 	private readonly ElementFactory elementFactory = elementFactory ?? throw new ArgumentNullException(nameof(elementFactory));
+	private readonly Action<LambdaExpression> reportClientSideEvaluation = reportClientSideEvaluation ?? throw new ArgumentNullException(nameof(reportClientSideEvaluation));
 
 	public Element GetElement(ElementSelector selector)
 	{
@@ -38,6 +40,7 @@ internal sealed class ElementQueryService(
 	public Element GetElement(Expression<Func<Element, bool?>> matcher, int timeoutMs, IReadOnlyList<string>? propNames)
 	{
 		_ = matcher ?? throw new ArgumentNullException(nameof(matcher));
+		ReportClientSideEvaluationIfRequired(matcher);
 		var predicate = matcher.Compile();
 		ElementRepairInfo? repairInfo = null;
 		repairInfo = matcherPlanner.CreateElementMatcherRepairInfo(matcher, predicate, () => repairInfo);
@@ -75,6 +78,7 @@ internal sealed class ElementQueryService(
 	{
 		_ = root ?? throw new ArgumentNullException(nameof(root));
 		_ = matcher ?? throw new ArgumentNullException(nameof(matcher));
+		ReportClientSideEvaluationIfRequired(matcher);
 		var predicate = matcher.Compile();
 		ElementRepairInfo? repairInfo = null;
 		repairInfo = matcherPlanner.CreateElementMatcherRepairInfo(matcher, predicate, () => repairInfo);
@@ -109,6 +113,7 @@ internal sealed class ElementQueryService(
 	public IReadOnlyList<Element> GetElements(Expression<Func<Element, bool?>> matcher, int timeoutMs, IReadOnlyList<string>? propNames)
 	{
 		_ = matcher ?? throw new ArgumentNullException(nameof(matcher));
+		ReportClientSideEvaluationIfRequired(matcher);
 		var predicate = matcher.Compile();
 		ElementRepairInfo? repairInfo = null;
 		repairInfo = matcherPlanner.CreateElementMatcherRepairInfo(matcher, predicate, () => repairInfo);
@@ -146,6 +151,7 @@ internal sealed class ElementQueryService(
 	{
 		_ = root ?? throw new ArgumentNullException(nameof(root));
 		_ = matcher ?? throw new ArgumentNullException(nameof(matcher));
+		ReportClientSideEvaluationIfRequired(matcher);
 		var predicate = matcher.Compile();
 		ElementRepairInfo? repairInfo = null;
 		repairInfo = matcherPlanner.CreateElementMatcherRepairInfo(matcher, predicate, () => repairInfo);
@@ -171,10 +177,17 @@ internal sealed class ElementQueryService(
 		where TElement : Element
 	{
 		_ = matcher ?? throw new ArgumentNullException(nameof(matcher));
+		ReportClientSideEvaluationIfRequired(matcher);
 		var predicate = matcher.Compile();
 		ElementRepairInfo? repairInfo = null;
 		repairInfo = matcherPlanner.CreateTypedElementMatcherRepairInfo(matcher, predicate, () => repairInfo);
 		return elementFinder.FindTypedByElementExpression(matcher, predicate, repairInfo, maxMatches);
+	}
+
+	private void ReportClientSideEvaluationIfRequired(LambdaExpression matcher)
+	{
+		if (ElementMatcherPlanner.RequiresClientSideElementPredicate(matcher))
+			reportClientSideEvaluation(matcher);
 	}
 
 	private string BuildRootNoMatchDiagnostic(string rootTargetId, IReadOnlyList<string> propNames)

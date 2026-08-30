@@ -76,7 +76,7 @@ internal static class ScreenshotCommand
 		var snapshot = treeService.CaptureSnapshot(new TreeSnapshotOptions
 		{
 			RequestedPropertyNames = [],
-			MaxNodeCount = 64,
+			MaxDepth = 1,
 		});
 		targetId = SelectDefaultScreenshotTargetId(snapshot);
 		return string.IsNullOrWhiteSpace(targetId)

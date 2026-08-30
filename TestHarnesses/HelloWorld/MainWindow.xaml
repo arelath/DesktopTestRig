@@ -25,6 +25,7 @@
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
           <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*" />
@@ -282,8 +283,79 @@
           </Expander>
         </GroupBox>
 
-        <GroupBox Header="Hosted WinForms"
+        <GroupBox x:Name="ScrollingAndTreeViewControls"
+                  Header="Scrolling and TreeView"
                   Grid.Row="5"
+                  Grid.ColumnSpan="2"
+                  Margin="0,0,0,12"
+                  AutomationProperties.AutomationId="ScrollingAndTreeViewControls"
+                  AutomationProperties.Name="Scrolling and TreeView Controls">
+          <Grid Margin="8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer x:Name="ScrollingViewer"
+                          Height="150"
+                          Margin="0,0,8,0"
+                          VerticalScrollBarVisibility="Visible"
+                          HorizontalScrollBarVisibility="Disabled"
+                          ScrollChanged="ScrollingViewer_ScrollChanged"
+                          AutomationProperties.AutomationId="ScrollingViewer"
+                          AutomationProperties.Name="Scrolling Viewer">
+              <StackPanel>
+                <TextBlock x:Name="ScrollItem01" Height="32" Padding="8" Text="Scroll item 01" AutomationProperties.AutomationId="ScrollItem01" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 02" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 03" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 04" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 05" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 06" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 07" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 08" />
+                <TextBlock Height="32" Padding="8" Text="Scroll item 09" />
+                <TextBlock x:Name="ScrollItem10" Height="32" Padding="8" Text="Scroll item 10" AutomationProperties.AutomationId="ScrollItem10" />
+              </StackPanel>
+            </ScrollViewer>
+
+            <TreeView x:Name="SampleTreeView"
+                      Grid.Column="1"
+                      Height="150"
+                      Margin="8,0,0,0"
+                      AutomationProperties.AutomationId="SampleTreeView"
+                      AutomationProperties.Name="Sample TreeView">
+              <TreeViewItem x:Name="TreeRootItem"
+                            Header="Project"
+                            IsExpanded="False"
+                            Expanded="TreeViewItem_Expanded"
+                            Collapsed="TreeViewItem_Collapsed"
+                            AutomationProperties.AutomationId="TreeRootItem"
+                            AutomationProperties.Name="Project">
+                <TreeViewItem x:Name="TreeLeafItem"
+                              Header="README.md"
+                              Selected="TreeViewItem_Selected"
+                              AutomationProperties.AutomationId="TreeLeafItem"
+                              AutomationProperties.Name="README.md" />
+                <TreeViewItem x:Name="TreeBranchItem"
+                              Header="src"
+                              IsExpanded="False"
+                              Expanded="TreeViewItem_Expanded"
+                              Collapsed="TreeViewItem_Collapsed"
+                              AutomationProperties.AutomationId="TreeBranchItem"
+                              AutomationProperties.Name="src">
+                  <TreeViewItem x:Name="NestedTreeLeafItem"
+                                Header="Program.cs"
+                                Selected="TreeViewItem_Selected"
+                                AutomationProperties.AutomationId="NestedTreeLeafItem"
+                                AutomationProperties.Name="Program.cs" />
+                </TreeViewItem>
+              </TreeViewItem>
+            </TreeView>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Hosted WinForms"
+                  Grid.Row="6"
                   Grid.ColumnSpan="2"
                   AutomationProperties.AutomationId="HostedWinFormsControls"
                   AutomationProperties.Name="Hosted WinForms Controls">

@@ -3,6 +3,7 @@ namespace DesktopTestRig;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq.Expressions;
 using System.Runtime.ExceptionServices;
@@ -54,7 +55,7 @@ public sealed class AppDriver : IDisposable
 		visualTreeClient = new VisualTreeClient(commandClient, elementRegistry, elementFactory);
 		elementFinder = new ElementFinder(commandClient, visualTreeClient, elementFactory, matcherPlanner);
 		elementRepairService = new ElementRepairService(elementFinder, visualTreeClient, elementFactory);
-		queryService = new ElementQueryService(elementFinder, matcherPlanner, elementWaiter, visualTreeClient, elementFactory);
+		queryService = new ElementQueryService(elementFinder, matcherPlanner, elementWaiter, visualTreeClient, elementFactory, ReportClientSideElementEvaluation);
 		mediaCaptureService = new MediaCaptureService(commandClient);
 		elementCommandExecutor = new ElementCommandExecutor(commandClient, elementRepairService);
 		keyboard = new Keyboard(this);
@@ -377,6 +378,34 @@ public sealed class AppDriver : IDisposable
 			catch (Exception sinkException) when (sinkException is not OutOfMemoryException && sinkException is not StackOverflowException)
 			{
 			}
+		}
+	}
+
+	private void ReportClientSideElementEvaluation(LambdaExpression matcher)
+	{
+		var expression = ExpressionPayloadSerializer.FormatDiagnosticText(matcher);
+		var maxNodeCount = ElementMatcherPlanner.ClientSideMatcherMaxNodeCount.ToString("N0", CultureInfo.InvariantCulture);
+		var message = $"Element search expression '{expression}' will be evaluated in the test process because it contains a delegate invocation or client-only helper that cannot be sent over the wire. This requires fetching up to {maxNodeCount} visual-tree nodes and can be substantially slower. Inline the matcher expression or use only target-side-supported calls to enable evaluation in the target process.";
+		if (automaticDiagnostics is not null)
+		{
+			automaticDiagnostics.RecordDiagnostic(AppDriverDiagnosticSeverity.Warning, "client-side-element-search", message);
+			return;
+		}
+
+		var diagnostic = new AppDriverDiagnostic
+		{
+			Severity = AppDriverDiagnosticSeverity.Warning,
+			Code = "client-side-element-search",
+			Message = message,
+		};
+		diagnostics.Add(diagnostic);
+		Trace.TraceWarning($"DesktopTestRig: {message}");
+		try
+		{
+			Options.AutomaticDiagnostics.ArtifactSink?.Log(diagnostic);
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException && ex is not StackOverflowException)
+		{
 		}
 	}
 

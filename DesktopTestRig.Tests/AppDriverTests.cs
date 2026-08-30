@@ -470,10 +470,19 @@ public sealed class AppDriverTests
 				},
 			});
 		var session = new FakeSession(snapshot);
+		var diagnosticSink = new RecordingDiagnosticSink();
 		var driver = AppDriver.CreateForTests(
 			AppConnection.ForAttach(new FakeTargetProcess(), "test-pipe"),
 			session,
-			new AppDriverOptions { Timeout = TimeSpan.FromMilliseconds(1) });
+			new AppDriverOptions
+			{
+				Timeout = TimeSpan.FromMilliseconds(1),
+				AutomaticDiagnostics = new AutomaticDiagnosticsOptions
+				{
+					Mode = AutomaticDiagnosticsMode.Off,
+					ArtifactSink = diagnosticSink,
+				},
+			});
 		Func<Element, bool> predicate = element =>
 			element.TypeName == "MenuItem"
 			&& element["Header"] == "Build"
@@ -487,6 +496,11 @@ public sealed class AppDriverTests
 		Assert.That(command.PropNames, Does.Contain("Header"));
 		Assert.That(command.PropNames, Does.Contain("IsEnabled"));
 		Assert.That(command.MaxNodeCount, Is.EqualTo(50_000));
+		var warning = driver.Diagnostics.Single(static diagnostic => diagnostic.Code == "client-side-element-search");
+		Assert.That(warning.Severity, Is.EqualTo(AppDriverDiagnosticSeverity.Warning));
+		Assert.That(warning.Message, Does.Contain("evaluated in the test process"));
+		Assert.That(warning.Message, Does.Contain("50,000 visual-tree nodes"));
+		Assert.That(diagnosticSink.Logged, Has.One.SameAs(warning));
 	}
 
 	[Test]
@@ -807,6 +821,7 @@ public sealed class AppDriverTests
 		Assert.That(command.PropNames, Does.Contain("Content"));
 		Assert.That(command.PropNames, Does.Contain("IsEnabled"));
 		Assert.That(command.MaxNodeCount, Is.EqualTo(50_000));
+		Assert.That(driver.Diagnostics.Select(static diagnostic => diagnostic.Code), Does.Not.Contain("client-side-element-search"));
 	}
 
 	[Test]
@@ -948,6 +963,19 @@ public sealed class AppDriverTests
 			: base(source)
 		{
 		}
+	}
+
+	private sealed class RecordingDiagnosticSink : IDiagnosticsArtifactSink
+	{
+		public List<AppDriverDiagnostic> Logged { get; } = [];
+
+		public DiagnosticsTestContext GetCurrentTestContext() => new();
+
+		public void AttachArtifact(string path, string description)
+		{
+		}
+
+		public void Log(AppDriverDiagnostic diagnostic) => Logged.Add(diagnostic);
 	}
 
 	private static readonly IReadOnlyList<string> MatcherPropertyNames =

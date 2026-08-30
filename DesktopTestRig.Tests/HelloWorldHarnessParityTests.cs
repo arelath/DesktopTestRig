@@ -66,6 +66,11 @@ public sealed class HelloWorldHarnessParityTests
 			"ExpanderControl",
 			"ScrollViewer",
 			"SecondTextBlock",
+			"ScrollingViewer",
+			"ScrollItem01",
+			"ScrollItem10",
+			"SampleTreeView",
+			"TreeRootItem",
 			"HostedWinFormsContainer",
 		};
 
@@ -74,6 +79,39 @@ public sealed class HelloWorldHarnessParityTests
 
 		Assert.That(FindByAutomationId("HelloWorldInput"), Is.Not.Null);
 		Assert.That(FindByAutomationId("HelloWorldWindow"), Is.Not.Null);
+	}
+
+	[Test]
+	public void ScrollingAndTreeViewCanBeDriven()
+	{
+		using var harness = ShowHarness();
+		var scrollingViewer = harness.Find<ScrollViewer>("ScrollingViewer");
+		var eventDisplay = harness.Find<TextBox>("EventDisplay");
+		var treeRoot = harness.Find<TreeViewItem>("TreeRootItem");
+		var treeBranch = harness.Find<TreeViewItem>("TreeBranchItem");
+		var nestedTreeLeaf = harness.Find<TreeViewItem>("NestedTreeLeafItem");
+		var initialOffset = scrollingViewer.VerticalOffset;
+
+		AssertOk(Send(new MouseWheelCommandRequest { TargetId = TargetIdByName("ScrollingViewer"), Delta = -120 }));
+		Assert.That(WaitUntil(() => scrollingViewer.VerticalOffset > initialOffset), Is.True, "Mouse wheel input should scroll the dedicated viewer down.");
+		Assert.That(scrollingViewer.VerticalOffset, Is.GreaterThan(0));
+		Assert.That(eventDisplay.Text, Does.StartWith("ScrollingViewer scrolled to "));
+
+		AssertOk(Send(new KnownOperationCommandRequest { TargetId = TargetIdByName("TreeRootItem"), Operation = "Expand" }));
+		Assert.That(treeRoot.IsExpanded, Is.True);
+		AssertEventText("TreeRootItem expanded.");
+
+		AssertOk(Send(new KnownOperationCommandRequest { TargetId = TargetIdByName("TreeBranchItem"), Operation = "Expand" }));
+		Assert.That(treeBranch.IsExpanded, Is.True);
+		AssertEventText("TreeBranchItem expanded.");
+
+		AssertOk(Send(new KnownOperationCommandRequest { TargetId = TargetIdByName("NestedTreeLeafItem"), Operation = "Select" }));
+		Assert.That(nestedTreeLeaf.IsSelected, Is.True);
+		AssertEventText("NestedTreeLeafItem selected.");
+
+		AssertOk(Send(new KnownOperationCommandRequest { TargetId = TargetIdByName("TreeRootItem"), Operation = "Collapse" }));
+		Assert.That(treeRoot.IsExpanded, Is.False);
+		AssertEventText("TreeRootItem collapsed.");
 	}
 
 	[Test]
@@ -362,12 +400,15 @@ public sealed class HelloWorldHarnessParityTests
 
 	private sealed class HarnessScope : IDisposable
 	{
-		private readonly Window window;
+		private readonly MainWindow window;
 
-		public HarnessScope(Window window)
+		public HarnessScope(MainWindow window)
 		{
 			this.window = window;
 		}
+
+		public T Find<T>(string name) where T : FrameworkElement =>
+			window.FindName(name) as T ?? throw new InvalidOperationException($"Harness element '{name}' was not found as {typeof(T).Name}.");
 
 		public void Dispose()
 		{

@@ -31,6 +31,7 @@ public sealed class RunningProcessAttachIntegrationTests
 		KnownProperties.IsEnabled,
 		KnownProperties.IsExpanded,
 		KnownProperties.IsOpen,
+		KnownProperties.IsSelected,
 		KnownProperties.IsSubmenuOpen,
 		KnownProperties.IsVisible,
 		KnownProperties.Visibility,
@@ -64,6 +65,56 @@ public sealed class RunningProcessAttachIntegrationTests
 		var button = AttachAndFind(harness.Process.Id, "HelloWorldButton");
 		Assert.That(button.TypeName, Is.EqualTo("Button"));
 		Assert.That(harness.Process.HasExited, Is.False, "The second attached driver must not own or stop the harness process.");
+	}
+
+	[Test]
+	public void ScrollingAndTreeViewActionsWorkInAttachedHarness()
+	{
+		using var harness = HarnessProcess.Start(ResolveHelloWorldExecutablePath());
+		using var driver = AttachToHarness(harness.Process.Id, nameof(ScrollingAndTreeViewActionsWorkInAttachedHarness));
+
+		var scrollingViewer = FindByAutomationId(driver, "ScrollingViewer");
+		var initialOffset = scrollingViewer.Invoke<ScrollViewer, double>(static viewer => viewer.VerticalOffset);
+		scrollingViewer.MouseWheel(-120);
+		WaitForElementTextContains(driver, "HelloWorldInput", "ScrollingViewer scrolled to ");
+		var scrolledOffset = scrollingViewer.Invoke<ScrollViewer, double>(static viewer => viewer.VerticalOffset);
+		Assert.That(scrolledOffset, Is.GreaterThan(initialOffset));
+
+		FindByAutomationId(driver, "TreeRootItem").Expand();
+		WaitForElementText(driver, "HelloWorldInput", "TreeRootItem expanded.");
+		Assert.That(FindTreeItemByState(driver, "TreeRootItem", KnownProperties.IsExpanded).GetProperty<bool>(KnownProperties.IsExpanded), Is.True);
+
+		FindByAutomationId(driver, "TreeBranchItem").Expand();
+		WaitForElementText(driver, "HelloWorldInput", "TreeBranchItem expanded.");
+		FindByAutomationId(driver, "NestedTreeLeafItem").Select();
+		WaitForElementText(driver, "HelloWorldInput", "NestedTreeLeafItem selected.");
+		Assert.That(FindTreeItemByState(driver, "NestedTreeLeafItem", KnownProperties.IsSelected).GetProperty<bool>(KnownProperties.IsSelected), Is.True);
+
+		FindByAutomationId(driver, "TreeRootItem").Collapse();
+		WaitForElementText(driver, "HelloWorldInput", "TreeRootItem collapsed.");
+		Assert.That(FindTreeItemByState(driver, "TreeRootItem", KnownProperties.IsExpanded, expected: false).GetProperty<bool>(KnownProperties.IsExpanded), Is.False);
+	}
+
+	[Test]
+	public void FileOpenDialogSelectsExistingFileInAttachedHarness()
+	{
+		var selectedFilePath = Path.Combine(Path.GetTempPath(), $"desktoptestrig-open-{Guid.NewGuid():N}.txt");
+		File.WriteAllText(selectedFilePath, "DesktopTestRig file-open dialog integration test.");
+
+		try
+		{
+			using var harness = HarnessProcess.Start(ResolveHelloWorldExecutablePath());
+			using var driver = AttachToHarness(harness.Process.Id, nameof(FileOpenDialogSelectsExistingFileInAttachedHarness));
+
+			FindByAutomationId(driver, "OpenFileDialogButton").Click();
+			driver.HandleFileDialog(selectedFilePath, TimeSpan.FromSeconds(30));
+
+			WaitForElementText(driver, "HelloWorldInput", $"Opened file: {Path.GetFileName(selectedFilePath)}");
+		}
+		finally
+		{
+			File.Delete(selectedFilePath);
+		}
 	}
 
 	[Test]
@@ -522,6 +573,7 @@ public sealed class RunningProcessAttachIntegrationTests
 				{
 					Timeout = TimeSpan.FromSeconds(30),
 					PayloadRoot = missingPayloadRoot,
+					InjectorLauncherPath = ResolveInjectorLauncherPath(),
 				}));
 
 			Assert.That(exception!.Message, Does.Contain("Target injection failed: Injector launcher exited with code 6."));
@@ -548,6 +600,7 @@ public sealed class RunningProcessAttachIntegrationTests
 		{
 			Timeout = TimeSpan.FromSeconds(30),
 			PayloadRoot = ResolvePayloadRoot(),
+			InjectorLauncherPath = ResolveInjectorLauncherPath(),
 		};
 		var options = enableTestRecording
 			? TestSemanticRecording.Configure(baseOptions, recordingLabel)
@@ -555,6 +608,7 @@ public sealed class RunningProcessAttachIntegrationTests
 			{
 				Timeout = baseOptions.Timeout,
 				PayloadRoot = baseOptions.PayloadRoot,
+				InjectorLauncherPath = baseOptions.InjectorLauncherPath,
 				AutoSemanticRecordingEnabled = false,
 			};
 
@@ -583,6 +637,12 @@ public sealed class RunningProcessAttachIntegrationTests
 	private static Element WaitForMenuHeaderOpen(AppDriver driver) =>
 		driver.GetElement(
 			element => element[KnownProperties.AutomationId] == "MenuHeader" && element[KnownProperties.IsSubmenuOpen] == true,
+			timeout: TimeSpan.FromMilliseconds(30_000),
+			propNames: MatcherPropertyNames);
+
+	private static Element FindTreeItemByState(AppDriver driver, string automationId, string stateProperty, bool expected = true) =>
+		driver.GetElement(
+			element => element[KnownProperties.AutomationId] == automationId && element[stateProperty] == expected,
 			timeout: TimeSpan.FromMilliseconds(30_000),
 			propNames: MatcherPropertyNames);
 
@@ -743,39 +803,48 @@ public sealed class RunningProcessAttachIntegrationTests
 
 	private static string ResolvePayloadRoot()
 	{
-		var root = Path.Combine(FindRepositoryRoot(), "output");
+		var root = Path.Combine(FindRepositoryRoot(), "artifacts", "staging");
 		var payload = Path.Combine(root, "payloads", "dotnet", "DesktopTestRig.dll");
 		Assert.That(File.Exists(payload), Is.True, $"Repacked dotnet payload was not found at '{payload}'. Run '.\\build.ps1 Compile' before integration tests.");
 		return root;
 	}
 
-	private static string ResolveHelloWorldExecutablePath()
+	private static string ResolveInjectorLauncherPath()
 	{
+		var architecture = Environment.Is64BitProcess ? "x64" : "x86";
 		var path = Path.Combine(
 			FindRepositoryRoot(),
-			"TestHarnesses",
-			"bin",
-			"HelloWorld",
-			"Debug",
-			"net8.0-windows",
-			"HelloWorld.exe");
-
-		Assert.That(File.Exists(path), Is.True, $"HelloWorld harness was not found at '{path}'. Build CompileTestHarnesses first.");
+			"artifacts",
+			"staging",
+			"DesktopTestRigResources",
+			architecture,
+			$"DesktopTestRig.InjectorLauncher.{architecture}.exe");
+		Assert.That(File.Exists(path), Is.True, $"Injector launcher was not found at '{path}'. Run '.\\build.ps1 Compile' before integration tests.");
 		return path;
+	}
+
+	private static string ResolveHelloWorldExecutablePath()
+	{
+		return ResolveHarnessExecutablePath("HelloWorld");
 	}
 
 	private static string ResolveDependencyConflictHarnessExecutablePath()
 	{
+		return ResolveHarnessExecutablePath("DependencyConflictHarness");
+	}
+
+	private static string ResolveHarnessExecutablePath(string projectName)
+	{
 		var path = Path.Combine(
 			FindRepositoryRoot(),
-			"TestHarnesses",
+			"artifacts",
 			"bin",
-			"DependencyConflictHarness",
-			"Debug",
+			projectName,
+			CurrentTestConfiguration(),
 			"net8.0-windows",
-			"DependencyConflictHarness.exe");
+			$"{projectName}.exe");
 
-		Assert.That(File.Exists(path), Is.True, $"Dependency conflict harness was not found at '{path}'. Build CompileTestHarnesses first.");
+		Assert.That(File.Exists(path), Is.True, $"{projectName} harness was not found at '{path}'. Build CompileTestHarnesses first.");
 		return path;
 	}
 
@@ -816,13 +885,22 @@ public sealed class RunningProcessAttachIntegrationTests
 	{
 		var path = Path.Combine(
 			FindRepositoryRoot(),
+			"artifacts",
 			"bin",
-			"Debug",
+			"DesktopTestRig.Cli",
+			CurrentTestConfiguration(),
 			"net8.0-windows",
 			"DesktopTestRig.Cli.dll");
 
 		Assert.That(File.Exists(path), Is.True, $"DesktopTestRig CLI was not found at '{path}'. Run '.\\build.ps1 Compile' before integration tests.");
 		return path;
+	}
+
+	private static string CurrentTestConfiguration()
+	{
+		var testDirectory = new DirectoryInfo(TestContext.CurrentContext.TestDirectory);
+		return testDirectory.Parent?.Name
+			?? throw new InvalidOperationException($"Could not determine the test configuration from '{testDirectory.FullName}'.");
 	}
 
 	private static string FindRepositoryRoot()

@@ -112,7 +112,8 @@ internal sealed class Build
 	{
 		RunDotNet("build", MainSolution, "--configuration", configuration, "--no-restore", "/p:RootBuild=true");
 		RepackPayloads();
-		RunDotNet("build", CliProject, "--configuration", configuration, "--no-restore", "/p:RootBuild=true");
+		foreach (var payloadLayoutProject in PayloadLayoutProjects)
+			RunDotNet("build", payloadLayoutProject, "--configuration", configuration, "--no-restore", "/p:RootBuild=true");
 	}
 
 	private void BuildClient()
@@ -448,6 +449,20 @@ internal sealed class Build
 	private string McpTestsProject => Path.Combine(rootDirectory, "DesktopTestRig.Mcp.Tests", "DesktopTestRig.Mcp.Tests.csproj");
 
 	private string CliProject => Path.Combine(rootDirectory, "DesktopTestRig.Cli", "DesktopTestRig.Cli.csproj");
+
+	private string AutomationProject => Path.Combine(rootDirectory, "DesktopTestRig.Automation", "DesktopTestRig.Automation.csproj");
+
+	private string McpProject => Path.Combine(rootDirectory, "DesktopTestRig.Mcp", "DesktopTestRig.Mcp.csproj");
+
+	private string RecorderProject => Path.Combine(rootDirectory, "DesktopTestRig.Recorder", "DesktopTestRig.Recorder.csproj");
+
+	private IReadOnlyList<string> PayloadLayoutProjects =>
+	[
+		AutomationProject,
+		CliProject,
+		McpProject,
+		RecorderProject,
+	];
 
 	private sealed class BuildTarget
 	{

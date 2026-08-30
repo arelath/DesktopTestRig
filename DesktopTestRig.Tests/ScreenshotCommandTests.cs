@@ -73,6 +73,33 @@ public sealed class ScreenshotCommandTests
 	}
 
 	[Test]
+	public void DefaultScreenshotFindsWindowAfterLargeUncapturableResourceTree()
+	{
+		var resources = new ResourceDictionary();
+		for (var i = 0; i < 100; i++)
+			resources.Add($"resource-{i}", new object());
+
+		var window = CreateWindow("Screenshot after resources", new Button { Name = "screenshotButton", Content = "Capture" });
+
+		try
+		{
+			window.Show();
+			var treeService = new TreeService(rootProvider: () => [resources, window]);
+
+			var response = (ScreenshotCommandResponse)InvokeScreenshotProcess(new ScreenshotCommandRequest { Format = ImageFormat.Png }, treeService)!;
+
+			Assert.That(response.TargetId, Is.Not.Empty);
+			Assert.That(response.Width, Is.GreaterThan(0));
+			Assert.That(response.Height, Is.GreaterThan(0));
+			Assert.That(response.ByteCount, Is.GreaterThan(0));
+		}
+		finally
+		{
+			window.Close();
+		}
+	}
+
+	[Test]
 	public void ElementScreenshotIncludesTargetMetadata()
 	{
 		var window = CreateWindow("Element screenshot", new Button { Name = "elementButton", Content = "Element" });

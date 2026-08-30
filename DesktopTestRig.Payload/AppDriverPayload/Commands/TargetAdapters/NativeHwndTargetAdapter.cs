@@ -8,6 +8,7 @@ using System.Windows.Automation;
 using DesktopTestRig.AppDriverPayload.Commands;
 using DesktopTestRig.Contracts;
 using DesktopTestRig.Shared;
+using DesktopTestRig.Utility.WpfUtility.Tree;
 
 internal sealed class NativeHwndTargetAdapter : UiTargetAdapterBase
 {
@@ -76,6 +77,13 @@ internal sealed class NativeHwndTargetAdapter : UiTargetAdapterBase
 		if (IsNativeTextProperty(propertyName))
 		{
 			var textValue = Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty;
+			if (string.Equals(propertyName, KnownProperties.FileName, StringComparison.Ordinal)
+				&& target is IntPtr dialogHwnd
+				&& TrySetNativeFileDialogFileName(dialogHwnd, textValue))
+			{
+				return ActionResult.Ok();
+			}
+
 			if (target is IntPtr hwnd && TrySetNativeWindowText(hwnd, textValue, clearFirst: true))
 				return ActionResult.Ok();
 		}
@@ -188,6 +196,70 @@ internal sealed class NativeHwndTargetAdapter : UiTargetAdapterBase
 		}
 
 		return NativeMethods.SendMessage(hwnd, NativeMethods.WM_SETTEXT, IntPtr.Zero, value) != IntPtr.Zero;
+	}
+
+	private static bool TrySetNativeFileDialogFileName(IntPtr hwnd, string fileName)
+	{
+		if (hwnd == IntPtr.Zero || !string.Equals(NativeDialogService.GetClassName(hwnd), "#32770", StringComparison.Ordinal))
+			return false;
+
+		try
+		{
+			var root = AutomationElement.FromHandle(hwnd);
+			if (root is not null)
+			{
+				var fileNameControl = root.FindFirst(
+					TreeScope.Descendants,
+					new OrCondition(
+						new PropertyCondition(AutomationElement.AutomationIdProperty, "1148"),
+						new PropertyCondition(AutomationElement.AutomationIdProperty, "FileNameControlHost")));
+				if (fileNameControl is not null)
+				{
+					if (TrySetAutomationValue(fileNameControl, fileName))
+						return true;
+
+					var edit = fileNameControl.FindFirst(
+						TreeScope.Descendants,
+						new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit));
+					if (edit is not null && TrySetAutomationValue(edit, fileName))
+						return true;
+				}
+			}
+		}
+		catch (ElementNotAvailableException)
+		{
+		}
+		catch (InvalidOperationException)
+		{
+		}
+
+		foreach (var child in EnumerateNativeChildWindows(hwnd))
+		{
+			if (NativeMethods.GetDlgCtrlID(child) == 1148 && TrySetNativeWindowText(child, fileName, clearFirst: true))
+				return true;
+		}
+
+		return false;
+	}
+
+	private static bool TrySetAutomationValue(AutomationElement element, string value)
+	{
+		try
+		{
+			if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) && pattern is ValuePattern valuePattern)
+			{
+				valuePattern.SetValue(value);
+				return true;
+			}
+		}
+		catch (ElementNotAvailableException)
+		{
+		}
+		catch (InvalidOperationException)
+		{
+		}
+
+		return false;
 	}
 
 	private static bool TryInvokeNativeDialogButton(IntPtr hwnd, bool accept)
