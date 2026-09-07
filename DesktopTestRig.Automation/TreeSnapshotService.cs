@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DesktopTestRig.Contracts;
 using DesktopTestRig.Interop;
+using DesktopTestRig.Utility.WpfUtility.Tree;
 
 public sealed class TreeSnapshotOptions
 {
@@ -29,6 +30,8 @@ public sealed class TreeSnapshotOptions
 	public IReadOnlyList<string> Properties { get; set; } = [];
 
 	public bool SuppressProperties { get; set; }
+
+	public bool IncludeMissingPropertyDiagnostics { get; set; }
 }
 
 public sealed class TreeSnapshotService(TargetIdService? targetIds = null)
@@ -144,6 +147,12 @@ public sealed class TreeSnapshotService(TargetIdService? targetIds = null)
 			TypeName = options.IncludeTypeNames ? node.TypeName : null,
 			FrameworkTypeName = options.IncludeTypeNames ? node.FrameworkTypeName : null,
 			Properties = options.SuppressProperties ? new Dictionary<string, object?>(StringComparer.Ordinal) : SelectProperties(node, options.Properties),
+			PropertyDiagnostics = options.SuppressProperties ? [] : node.Properties
+				.Where(property => options.Properties.Count == 0 || options.Properties.Contains(property.Key, StringComparer.Ordinal))
+				.Select(static property => property.Value)
+				.OfType<PropertyExtractionError>()
+				.Where(error => options.IncludeMissingPropertyDiagnostics || error.ErrorCode != "missing-property")
+				.ToArray(),
 		};
 	}
 
@@ -199,12 +208,13 @@ public sealed class TreeSnapshotService(TargetIdService? targetIds = null)
 	private static Dictionary<string, object?> SelectProperties(VisualTreeNodeDto node, IReadOnlyList<string> properties)
 	{
 		if (properties.Count == 0)
-			return node.Properties.ToDictionary(static property => property.Key, static property => NormalizeScalar(property.Value), StringComparer.Ordinal);
+			return node.Properties.Where(static property => property.Value is not PropertyExtractionError)
+				.ToDictionary(static property => property.Key, static property => NormalizeScalar(property.Value), StringComparer.Ordinal);
 
 		var selected = new Dictionary<string, object?>(StringComparer.Ordinal);
 		foreach (var property in properties)
 		{
-			if (node.Properties.TryGetValue(property, out var value))
+			if (node.Properties.TryGetValue(property, out var value) && value is not PropertyExtractionError)
 				selected[property] = NormalizeScalar(value);
 		}
 
@@ -261,6 +271,8 @@ public sealed class TreeSnapshotData
 
 public sealed class TreeNodeData
 {
+	public IReadOnlyList<PropertyExtractionError> PropertyDiagnostics { get; set; } = [];
+
 	public string TargetId { get; set; } = string.Empty;
 
 	public string? ShortId { get; set; }

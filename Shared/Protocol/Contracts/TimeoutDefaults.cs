@@ -22,6 +22,7 @@ public static class TimeoutDefaults
 	public const int CliCommandTimeoutMs = CommandTimeoutMs;
 	public const int CliAttachTimeoutMs = CommandTimeoutMs;
 	public const int CliAttachRetrySleepMs = 100;
+	public const int CliInitialPipeProbeTimeoutMs = 50;
 	public const int CliOneShotConnectTimeoutCapMs = 500;
 	public const int CliWaitIntervalMs = 250;
 

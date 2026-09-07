@@ -2,10 +2,12 @@ namespace DesktopTestRig.Utility.WpfUtility.Tree;
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -18,6 +20,10 @@ using Forms = System.Windows.Forms;
 
 public sealed class VisualTreePropertyExtractor
 {
+	// Weak type keys avoid keeping dynamically loaded UI assemblies alive. Cache accessors,
+	// never instance values or getter failures; live state must be read on every capture.
+	private static readonly ConditionalWeakTable<Type, ConcurrentDictionary<string, PropertyAccessor>> Accessors = new();
+
 	private static readonly string[] PrimaryIdentityPropertyNames =
 	[
 		KnownProperties.AutomationId,
@@ -98,13 +104,7 @@ public sealed class VisualTreePropertyExtractor
 				return true;
 			}
 
-			if (TryReadClrProperty(target, propertyName, out value))
-			{
-				error = null;
-				return true;
-			}
-
-			if (TryReadDependencyProperty(target, propertyName, out value))
+			if (TryReadCachedProperty(target, propertyName, out value))
 			{
 				error = null;
 				return true;
@@ -341,32 +341,32 @@ public sealed class VisualTreePropertyExtractor
 		}
 	}
 
-	private static bool TryReadClrProperty(object target, string propertyName, out object? value)
+	private static bool TryReadCachedProperty(object target, string propertyName, out object? value)
 	{
-		value = null;
-		var property = target.GetType().GetProperty(
-			propertyName,
-			BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-
-		if (property is null || property.CanRead == false || property.GetIndexParameters().Length != 0)
-			return false;
-
-		value = property.GetValue(target, null);
-		return true;
+		var type = target.GetType();
+		var accessors = Accessors.GetValue(type, static _ => new ConcurrentDictionary<string, PropertyAccessor>(StringComparer.Ordinal));
+		var accessor = accessors.GetOrAdd(propertyName, name => CreateAccessor(type, name));
+		value = accessor.Read?.Invoke(target);
+		return accessor.Read is not null;
 	}
 
-	private static bool TryReadDependencyProperty(object target, string propertyName, out object? value)
+	private static PropertyAccessor CreateAccessor(Type type, string propertyName)
 	{
-		value = null;
-		if (target is not DependencyObject dependencyObject)
-			return false;
+		var property = type.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
+		if (property is not null && property.CanRead && property.GetIndexParameters().Length == 0)
+			return new PropertyAccessor(target => property.GetValue(target, null));
+		if (typeof(DependencyObject).IsAssignableFrom(type))
+		{
+			var dependencyProperty = FindDependencyProperty(type, propertyName);
+			if (dependencyProperty is not null)
+				return new PropertyAccessor(target => ((DependencyObject)target).GetValue(dependencyProperty));
+		}
+		return new PropertyAccessor(null);
+	}
 
-		var dependencyProperty = FindDependencyProperty(target.GetType(), propertyName);
-		if (dependencyProperty is null)
-			return false;
-
-		value = dependencyObject.GetValue(dependencyProperty);
-		return true;
+	private sealed class PropertyAccessor(Func<object, object?>? read)
+	{
+		public Func<object, object?>? Read { get; } = read;
 	}
 
 	private static DependencyProperty? FindDependencyProperty(Type targetType, string propertyName)

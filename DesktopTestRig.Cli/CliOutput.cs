@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using DesktopTestRig.Contracts;
 using DesktopTestRig.Interop;
+using DesktopTestRig.Utility.WpfUtility.Tree;
 
 public static class CliOutput
 {
@@ -237,7 +238,10 @@ public static class CliOutput
 		if (tree.Truncated)
 			writer.WriteLine($"truncated: {tree.TruncationReason ?? "yes"}");
 		foreach (var node in tree.Nodes.Count != 0 ? tree.Nodes : FlattenRoots(tree.Roots))
+		{
 			writer.WriteLine($"{new string(' ', Math.Max(0, node.Depth) * 2)}{node.TargetId} {node.TypeName ?? node.FrameworkTypeName ?? string.Empty}".TrimEnd());
+			WritePropertyDiagnostics(node.PropertyDiagnostics, writer);
+		}
 	}
 
 	private static void WriteNodeText(object? data, TextWriter writer)
@@ -264,6 +268,7 @@ public static class CliOutput
 		writer.WriteLine(props.TargetId);
 		foreach (var property in props.Properties)
 			writer.WriteLine($"{property.Key}: {property.Value}");
+		WritePropertyDiagnostics(props.PropertyDiagnostics, writer);
 	}
 
 	private static void WriteSelectorsText(object? data, TextWriter writer)
@@ -286,6 +291,9 @@ public static class CliOutput
 			List<string> removals = [];
 			foreach (var property in obj.ToArray())
 			{
+				// Property values are data: preserve explicit nulls and empty collections.
+				if (property.Key == "properties")
+					continue;
 				PruneEmpty(property.Value);
 				if (RequiredEmptyFields.Contains(property.Key))
 					continue;
@@ -336,6 +344,13 @@ public static class CliOutput
 	{
 		var typeName = node.TypeName ?? node.FrameworkTypeName ?? string.Empty;
 		writer.WriteLine($"{node.TargetId} {typeName}".TrimEnd());
+		WritePropertyDiagnostics(node.PropertyDiagnostics, writer);
+	}
+
+	private static void WritePropertyDiagnostics(IEnumerable<PropertyExtractionError> diagnostics, TextWriter writer)
+	{
+		foreach (var diagnostic in diagnostics)
+			writer.WriteLine($"  {diagnostic.PropertyName}: [{diagnostic.ErrorCode}] {diagnostic.Message}");
 	}
 
 	private static string Truncate(string value, int length)

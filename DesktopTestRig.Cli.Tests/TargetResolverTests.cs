@@ -8,6 +8,42 @@ using NUnit.Framework;
 [TestFixture]
 public sealed class TargetResolverTests
 {
+	[TestCase(false)]
+	[TestCase(true)]
+	public void PidAndCachedNameInspectOnlySelectedProcess(bool useNameCache)
+	{
+		var source = new SingleProcessSource();
+		var cache = new FakeProcessNameCache();
+		cache.Set("App", 42);
+		var resolver = new TargetResolver(source, fileProcessNameCache: cache);
+
+		var target = resolver.Resolve(useNameCache
+			? new TargetSelector { ProcessName = "App" }
+			: new TargetSelector { ProcessId = 42 });
+
+		Assert.That(target.ProcessId, Is.EqualTo(42));
+		Assert.That(source.RequestedPid, Is.EqualTo(42));
+	}
+
+	[Test]
+	public void LiveSingleProcessInspectionHandlesCurrentAndMissingProcess()
+	{
+		var source = new LiveProcessSnapshotSource();
+		Assert.That(source.GetSnapshot(Environment.ProcessId)?.ProcessId, Is.EqualTo(Environment.ProcessId));
+		Assert.That(source.GetSnapshot(int.MaxValue), Is.Null);
+	}
+
+	private sealed class SingleProcessSource : IProcessSnapshotSource
+	{
+		public int RequestedPid { get; private set; }
+		public ProcessSnapshotResult GetSnapshots() => throw new InvalidOperationException("Unexpected full process scan.");
+		public ProcessSnapshot? GetSnapshot(int processId)
+		{
+			RequestedPid = processId;
+			return Process(processId, "App");
+		}
+	}
+
 	[Test]
 	public void ResolvesByPid()
 	{

@@ -57,10 +57,35 @@ public sealed class ProcessSnapshotResult
 public interface IProcessSnapshotSource
 {
 	ProcessSnapshotResult GetSnapshots();
+
+	// Preserve compatibility with snapshot sources that only support enumeration.
+	ProcessSnapshot? GetSnapshot(int processId) =>
+		GetSnapshots().Processes.FirstOrDefault(process => process.ProcessId == processId);
 }
 
 public sealed class LiveProcessSnapshotSource : IProcessSnapshotSource
 {
+	public ProcessSnapshot? GetSnapshot(int processId)
+	{
+		try
+		{
+			using var process = Process.GetProcessById(processId);
+			return CreateSnapshot(process, EnumerateTopLevelWindowsByProcessId(), []);
+		}
+		catch (ArgumentException)
+		{
+			return null;
+		}
+		catch (InvalidOperationException)
+		{
+			return null;
+		}
+		catch (System.ComponentModel.Win32Exception)
+		{
+			return null;
+		}
+	}
+
 	public ProcessSnapshotResult GetSnapshots()
 	{
 		List<ProcessSnapshot> snapshots = [];

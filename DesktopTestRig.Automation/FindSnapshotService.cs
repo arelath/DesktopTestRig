@@ -6,9 +6,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using DesktopTestRig.Contracts;
 using DesktopTestRig.Interop;
+using DesktopTestRig.Utility.WpfUtility.Tree;
 
 public sealed class FindSnapshotOptions
 {
+	public bool IncludeMissingPropertyDiagnostics { get; set; }
+
 	public string? TypeName { get; set; }
 
 	public string? TypeContains { get; set; }
@@ -75,6 +78,7 @@ public sealed class FindSnapshotService(TreeSnapshotService? treeService = null)
 	{
 		var nodeOptions = new TreeSnapshotOptions
 		{
+			IncludeMissingPropertyDiagnostics = options.IncludeMissingPropertyDiagnostics,
 			IncludePath = options.IncludePath,
 			IncludeTypeNames = true,
 			UseShortIds = options.UseShortIds,
@@ -159,15 +163,17 @@ public sealed class FindSnapshotService(TreeSnapshotService? treeService = null)
 
 	private static bool PropertyEqualsAny(VisualTreeNodeDto node, string expected, StringComparison comparison, params string[] names) =>
 		names.Any(name => node.Properties.TryGetValue(name, out var actual)
+			&& actual is not PropertyExtractionError
 			&& string.Equals(Convert.ToString(actual, System.Globalization.CultureInfo.InvariantCulture), expected, comparison));
 
 	private static bool PropertyContainsAny(VisualTreeNodeDto node, string expected, StringComparison comparison, params string[] names) =>
 		names.Any(name => node.Properties.TryGetValue(name, out var actual)
+			&& actual is not PropertyExtractionError
 			&& Convert.ToString(actual, System.Globalization.CultureInfo.InvariantCulture)?.Contains(expected, comparison) == true);
 
 	private static bool PropertyRegexAny(VisualTreeNodeDto node, string name, Regex regex) =>
 		node.Properties.TryGetValue(name, out var actual)
-		&& actual is not null
+		&& actual is not null and not PropertyExtractionError
 		&& regex.IsMatch(Convert.ToString(actual, System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty);
 
 	private static bool PropertyBoolEquals(VisualTreeNodeDto node, string name, bool expected)

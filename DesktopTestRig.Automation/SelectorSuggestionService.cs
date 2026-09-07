@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using DesktopTestRig.Contracts;
 using DesktopTestRig.Interop;
+using DesktopTestRig.Utility.WpfUtility.Tree;
 
 public sealed class SelectorSuggestionService
 {
@@ -59,7 +60,7 @@ public sealed class SelectorSuggestionService
 		double confidence,
 		string explanation)
 	{
-		if (!node.Properties.TryGetValue(propertyName, out var value) || value is null)
+		if (!node.Properties.TryGetValue(propertyName, out var value) || value is null or PropertyExtractionError)
 			return;
 
 		var text = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
@@ -82,7 +83,7 @@ public sealed class SelectorSuggestionService
 	{
 		foreach (var property in KnownProperties.TextualIdentityPropertyNames)
 		{
-			if (!node.Properties.TryGetValue(property, out var value) || value is null)
+			if (!node.Properties.TryGetValue(property, out var value) || value is null or PropertyExtractionError)
 				continue;
 
 			var text = Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);

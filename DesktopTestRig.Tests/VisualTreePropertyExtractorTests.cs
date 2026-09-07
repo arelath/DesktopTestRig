@@ -74,6 +74,8 @@ public sealed class VisualTreePropertyExtractorTests
 	[Test]
 	public void BitmapImageSourceUsesItsUriAsAStablePropertyValue()
 	{
+		// Register the pack URI parser even when this fixture runs before other WPF tests.
+		System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(System.IO.Packaging.PackUriHelper).TypeHandle);
 		const string sourceUri = "pack://application:,,,/Assets/toolbar-save.png";
 		var source = new BitmapImage();
 		source.BeginInit();
@@ -141,6 +143,35 @@ public sealed class VisualTreePropertyExtractorTests
 	{
 		Assert.That(value, Is.TypeOf<PropertyExtractionError>());
 		Assert.That(((PropertyExtractionError)value!).ErrorCode, Is.EqualTo(errorCode));
+	}
+
+	[Test]
+	public void CachedAccessorsReadLiveValuesAndRetryFailedGetters()
+	{
+		var extractor = new VisualTreePropertyExtractor();
+		var target = new RecoveringTarget();
+		AssertPropertyError(extractor.Extract(target, ["Text"])["Text"], "property-read-failed");
+		target.Throw = false;
+		Assert.That(extractor.Extract(target, ["Text"])["Text"], Is.EqualTo("recovered"));
+		Assert.That(extractor.Extract(new ClrTarget { Text = "other instance" }, ["Text"])["Text"], Is.EqualTo("other instance"));
+	}
+
+	[Test]
+	public void MissingCacheIsSpecificToRuntimeTypeAndDependencyValuesStayLive()
+	{
+		var extractor = new VisualTreePropertyExtractor();
+		AssertPropertyError(extractor.Extract(new object(), ["CustomValue"])["CustomValue"], "missing-property");
+		var target = new DependencyOnlyTarget();
+		target.SetValue(DependencyOnlyTarget.CustomValueProperty, "first");
+		Assert.That(extractor.Extract(target, ["CustomValue"])["CustomValue"], Is.EqualTo("first"));
+		target.SetValue(DependencyOnlyTarget.CustomValueProperty, null);
+		Assert.That(extractor.Extract(target, ["CustomValue"])["CustomValue"], Is.Null);
+	}
+
+	private sealed class RecoveringTarget
+	{
+		public bool Throw { get; set; } = true;
+		public string Text => Throw ? throw new InvalidOperationException("temporary") : "recovered";
 	}
 
 	private sealed class ClrTarget

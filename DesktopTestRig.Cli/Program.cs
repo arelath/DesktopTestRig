@@ -23,13 +23,11 @@ public static class Program
 	public static int Run(string[] args, CliServices? services, TextWriter? stdout, TextWriter? stderr)
 	{
 		_ = args ?? throw new ArgumentNullException(nameof(args));
-		services ??= new CliServices();
 		stdout ??= Console.Out;
 		stderr ??= Console.Error;
 		var stopwatch = Stopwatch.StartNew();
 		var commandPath = CliRootCommand.GetCommandPath(args);
 		var commandName = string.IsNullOrWhiteSpace(commandPath) ? "help" : commandPath;
-		var executionContext = new CliCommandExecutionContext(args, services, stdout, stderr, stopwatch);
 
 		if (CliRootCommand.IsHelpRequest(args))
 		{
@@ -37,6 +35,8 @@ public static class Program
 			return 0;
 		}
 
+		services ??= new CliServices();
+		var executionContext = new CliCommandExecutionContext(args, services, stdout, stderr, stopwatch);
 		var root = CreateRootCommand(CreateCommandActions(executionContext));
 		var parseResult = root.Parse(args, new ParserConfiguration());
 		if (parseResult.Errors.Count != 0)
@@ -233,6 +233,7 @@ public static class Program
 		var snapshot = ReadSnapshot(session, commonOptions, properties, limit);
 		var options = new TreeSnapshotOptions
 		{
+			IncludeMissingPropertyDiagnostics = commonOptions.Debug,
 			Shape = GetTreeShapeOption(args, defaults.Commands.Tree.Shape),
 			RootTargetId = CliArgumentReader.GetOption(args, "--root", "--target-id") ?? defaults.Commands.Tree.Root,
 			MaxDepth = CliArgumentReader.GetInt(args, "--max-depth", defaults.Commands.Tree.MaxDepth),
@@ -677,6 +678,7 @@ public static class Program
 		var include = GetFindIncludeSections(args, defaults);
 		return new FindSnapshotOptions
 		{
+			IncludeMissingPropertyDiagnostics = commonOptions.Debug,
 			TypeName = CliArgumentReader.GetOption(args, "--type") ?? defaults.Commands.Find.Type,
 			TypeContains = CliArgumentReader.GetOption(args, "--type-contains") ?? defaults.Commands.Find.TypeContains,
 			Name = CliArgumentReader.GetOption(args, "--name") ?? defaults.Commands.Find.Name,
@@ -731,6 +733,7 @@ public static class Program
 	{
 		return new NodeSnapshotOptions
 		{
+			IncludeMissingPropertyDiagnostics = commonOptions.Debug,
 			TargetId = GetTargetIdArgument(args),
 			IncludeAncestors = CliArgumentReader.HasOption(args, "--include-ancestors", "--ancestors"),
 			IncludeChildren = CliArgumentReader.HasOption(args, "--include-children", "--children"),

@@ -4,9 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DesktopTestRig.Interop;
+using DesktopTestRig.Utility.WpfUtility.Tree;
 
 public sealed class NodeSnapshotOptions
 {
+	public bool IncludeMissingPropertyDiagnostics { get; set; }
+
 	public string TargetId { get; set; } = string.Empty;
 
 	public bool IncludeAncestors { get; set; }
@@ -42,6 +45,7 @@ public sealed class NodeSnapshotService
 		var node = relationships.Nodes[fullId];
 		var treeOptions = new TreeSnapshotOptions
 		{
+			IncludeMissingPropertyDiagnostics = options.IncludeMissingPropertyDiagnostics,
 			IncludePath = options.IncludePath,
 			IncludeTypeNames = true,
 			UseShortIds = options.UseShortIds,
@@ -73,6 +77,7 @@ public sealed class NodeSnapshotService
 			TypeName = nodeResult.Node.TypeName,
 			FrameworkTypeName = nodeResult.Node.FrameworkTypeName,
 			Properties = nodeResult.Node.Properties,
+			PropertyDiagnostics = nodeResult.Node.PropertyDiagnostics,
 		};
 	}
 }
@@ -90,6 +95,8 @@ public sealed class NodeResultData
 
 public sealed class PropsResultData
 {
+	public IReadOnlyList<PropertyExtractionError> PropertyDiagnostics { get; set; } = [];
+
 	public string TargetId { get; set; } = string.Empty;
 
 	public string? ShortId { get; set; }

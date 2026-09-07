@@ -1,6 +1,7 @@
 namespace DesktopTestRig.Automation;
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Threading;
@@ -54,6 +55,9 @@ public interface IAutomationSessionService
 public interface IAutomationSessionConnector
 {
 	bool TryConnect(AppConnection connection, int timeoutMs, out IAutomationSession? session, out AutomationException? error);
+
+	bool TryConnect(AppConnection connection, int timeoutMs, int connectTimeoutMs, out IAutomationSession? session, out AutomationException? error) =>
+		TryConnect(connection, timeoutMs, out session, out error);
 }
 
 public sealed class AutomationSessionService : IAutomationSessionService
@@ -80,9 +84,13 @@ public sealed class AutomationSessionService : IAutomationSessionService
 		var pipeName = AutomationPipeName.ForTarget(target.ProcessId, options.PipeId);
 		var process = target.OpenProcess();
 		var connection = AppConnection.ForAttach(process, pipeName, target.FrameworkFamily ?? string.Empty);
-		var deadline = DateTimeOffset.UtcNow.AddMilliseconds(Math.Max(1, options.TimeoutMs));
+		var timer = Stopwatch.StartNew();
+		var budgetMs = Math.Max(1, options.TimeoutMs);
+		int RemainingMs() => (int)Math.Max(0, budgetMs - timer.ElapsedMilliseconds);
 
-		if (connector.TryConnect(connection, options.TimeoutMs, out var session, out var error))
+		if (connector.TryConnect(connection, budgetMs,
+			options.NoInject ? budgetMs : AutomationTimeoutDefaults.InitialPipeProbeTimeoutMs,
+			out var session, out var error))
 			return session!;
 
 		if (error is not null && error.ErrorCode == AutomationErrorCodes.ProtocolError)
@@ -97,12 +105,20 @@ public sealed class AutomationSessionService : IAutomationSessionService
 			throw new AutomationException(AutomationErrorCodes.PipeFailed, error?.Message ?? $"Could not connect to pipe '{pipeName}'.");
 		}
 
+		if (error is not null && error.ErrorCode is AutomationErrorCodes.CommandTimeout or AutomationErrorCodes.TargetExited)
+		{
+			connection.Dispose();
+			throw error;
+		}
+
 		try
 		{
+			if (RemainingMs() == 0)
+				throw error ?? new AutomationException(AutomationErrorCodes.PipeFailed, "Attachment timed out before injection.");
 			var driverOptions = new AppDriverOptions
 			{
 				PipeName = pipeName,
-				Timeout = TimeSpan.FromMilliseconds(Math.Max(1, options.TimeoutMs)),
+				Timeout = TimeSpan.FromMilliseconds(Math.Max(1, RemainingMs())),
 			};
 			var injector = injectorFactory(driverOptions);
 			injector.Inject(connection);
@@ -118,17 +134,16 @@ public sealed class AutomationSessionService : IAutomationSessionService
 			throw new AutomationException(AutomationErrorCodes.AttachFailed, $"Failed to inject reusable automation listener: {ex.Message}");
 		}
 
-		do
+		while (RemainingMs() > 0)
 		{
-			if (connector.TryConnect(connection, options.TimeoutMs, out session, out error))
+			if (connector.TryConnect(connection, RemainingMs(), out session, out error))
 				return session!;
 
-			if (error is not null && error.ErrorCode == AutomationErrorCodes.ProtocolError)
+			if (error is not null && error.ErrorCode is AutomationErrorCodes.ProtocolError or AutomationErrorCodes.CommandTimeout or AutomationErrorCodes.TargetExited)
 				break;
 
-			Thread.Sleep(Math.Min(AutomationTimeoutDefaults.AttachRetrySleepMs, Math.Max(1, options.TimeoutMs)));
+			Thread.Sleep(Math.Min(AutomationTimeoutDefaults.AttachRetrySleepMs, RemainingMs()));
 		}
-		while (DateTimeOffset.UtcNow < deadline);
 
 		connection.Dispose();
 		throw error ?? new AutomationException(AutomationErrorCodes.PipeFailed, $"Could not connect to pipe '{pipeName}' after injection.");
@@ -140,20 +155,24 @@ public sealed class AutomationSessionService : IAutomationSessionService
 
 public sealed class NamedPipeAutomationSessionConnector : IAutomationSessionConnector
 {
-	public bool TryConnect(AppConnection connection, int timeoutMs, out IAutomationSession? session, out AutomationException? error)
+	public bool TryConnect(AppConnection connection, int timeoutMs, out IAutomationSession? session, out AutomationException? error) =>
+		TryConnect(connection, timeoutMs, AutomationTimeoutDefaults.OneShotConnectTimeoutCapMs, out session, out error);
+
+	public bool TryConnect(AppConnection connection, int timeoutMs, int connectTimeoutMs, out IAutomationSession? session, out AutomationException? error)
 	{
 		session = null;
 		error = null;
+		NamedPipeAutomationSession? created = null;
 		try
 		{
-			var created = new NamedPipeAutomationSession(connection, null, timeoutMs);
+			created = new NamedPipeAutomationSession(connection, null, Math.Min(timeoutMs, connectTimeoutMs));
+			using var timeoutSource = new CancellationTokenSource(Math.Max(1, timeoutMs));
 			var hello = created.Send<HelloCommandResponse>(
 				new HelloCommandRequest { ProtocolVersion = ProtocolConstants.ProtocolVersion },
-				Math.Max(1, timeoutMs));
+				Math.Max(1, timeoutMs), timeoutSource.Token);
 			created.ConfigureControlConnection(hello);
 			if (!string.Equals(hello.ProtocolVersion, ProtocolConstants.ProtocolVersion, StringComparison.Ordinal))
 			{
-				created.Dispose();
 				error = new AutomationException(AutomationErrorCodes.ProtocolError, $"Protocol mismatch. Expected {ProtocolConstants.ProtocolVersion}, received {hello.ProtocolVersion}.");
 				return false;
 			}
@@ -161,6 +180,11 @@ public sealed class NamedPipeAutomationSessionConnector : IAutomationSessionConn
 			created.Hello = hello;
 			session = created;
 			return true;
+		}
+		catch (OperationCanceledException)
+		{
+			error = new AutomationException(AutomationErrorCodes.CommandTimeout, $"Attachment handshake timed out after {timeoutMs} ms.");
+			return false;
 		}
 		catch (AutomationException ex)
 		{
@@ -176,6 +200,12 @@ public sealed class NamedPipeAutomationSessionConnector : IAutomationSessionConn
 		{
 			error = new AutomationException(AutomationErrorCodes.PipeFailed, ex.Message);
 			return false;
+		}
+		finally
+		{
+			// The service owns the target connection across retries; release only this attempt's pipe.
+			if (session is null)
+				created?.DisposeControlConnection();
 		}
 	}
 
@@ -209,6 +239,8 @@ public sealed class NamedPipeAutomationSession : IAutomationSession
 	}
 
 	public HelloCommandResponse Hello { get; internal set; }
+
+	internal void DisposeControlConnection() => controlClient.Dispose();
 
 	public TResponse Send<TResponse>(IpcCommand command, int timeoutMs)
 		=> SendAsync<TResponse>(command, timeoutMs, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();

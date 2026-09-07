@@ -4,6 +4,8 @@ using System;
 
 public sealed class CliServices
 {
+	private readonly Lazy<AutomationServices> automation;
+
 	public CliServices(
 		CliDefaultsStore? defaultsStore = null,
 		IProcessSnapshotSource? processSnapshotSource = null,
@@ -11,12 +13,12 @@ public sealed class CliServices
 		IAutomationSessionService? appSessionService = null)
 	{
 		DefaultsStore = defaultsStore ?? new CliDefaultsStore();
-		Automation = new AutomationServices(processSnapshotSource, targetResolver, appSessionService);
+		automation = new(() => new AutomationServices(processSnapshotSource, targetResolver, appSessionService));
 	}
 
 	public CliDefaultsStore DefaultsStore { get; }
 
-	public AutomationServices Automation { get; }
+	public AutomationServices Automation => automation.Value;
 
 	public IProcessSnapshotSource ProcessSnapshotSource => Automation.ProcessSnapshotSource;
 

@@ -261,8 +261,7 @@ public sealed class TargetResolver : ITargetResolver
 
 	private TargetInfo ResolveByPid(int processId)
 	{
-		var result = snapshotSource.GetSnapshots();
-		var match = result.Processes.FirstOrDefault(process => process.ProcessId == processId);
+		var match = snapshotSource.GetSnapshot(processId);
 		if (match is null)
 			throw new AutomationException(AutomationErrorCodes.TargetNotFound, $"Process {processId} was not found.");
 
@@ -300,8 +299,7 @@ public sealed class TargetResolver : ITargetResolver
 		if (!cachedProcessId.HasValue)
 			return null;
 
-		var result = snapshotSource.GetSnapshots();
-		var match = result.Processes.FirstOrDefault(process => process.ProcessId == cachedProcessId.Value);
+		var match = snapshotSource.GetSnapshot(cachedProcessId.Value);
 		if (match is not null && ProcessNameMatches(match, normalizedProcessName))
 			return ToTarget(match);
 
