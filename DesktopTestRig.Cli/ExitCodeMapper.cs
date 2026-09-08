@@ -29,6 +29,7 @@ public static class ExitCodeMapper
 			AutomationErrorCodes.StaleTarget => 8,
 			AutomationErrorCodes.UnexpectedError => 9,
 			AutomationErrorCodes.PipeBusy => 10,
+			AutomationErrorCodes.SearchIncomplete => 11,
 			AutomationErrorCodes.NotImplemented => 1,
 			_ => 9,
 		};

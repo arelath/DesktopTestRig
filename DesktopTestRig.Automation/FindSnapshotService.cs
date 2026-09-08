@@ -36,6 +36,8 @@ public sealed class FindSnapshotOptions
 
 	public int Limit { get; set; } = 50;
 
+	public int? ScanLimit { get; set; }
+
 	public bool IncludePath { get; set; }
 
 	public bool IncludeProperties { get; set; }
@@ -60,9 +62,12 @@ public sealed class FindSnapshotService(TreeSnapshotService? treeService = null)
 
 		var regex = CompileRegex(options.PropertyRegex);
 		var relationships = SnapshotRelationships.Create(snapshot);
-		var matches = snapshot.Nodes
+		if (options.Limit <= 0)
+			throw new AutomationException(AutomationErrorCodes.InvalidArguments, "Match limit must be positive.");
+		var allMatches = snapshot.Nodes
 			.Where(node => Matches(node, options, regex))
-			.Take(Math.Max(0, options.Limit))
+			.ToList();
+		var matches = allMatches.Take(options.Limit)
 			.Select(node => ToMatch(node, snapshot, relationships, options))
 			.ToList();
 
@@ -71,6 +76,15 @@ public sealed class FindSnapshotService(TreeSnapshotService? treeService = null)
 			MatchCount = matches.Count,
 			MaxMatches = Math.Max(0, options.Limit),
 			Matches = matches,
+			SearchComplete = !snapshot.IsTruncated,
+			ScannedNodeCount = snapshot.Nodes.Count,
+			ScanLimit = options.ScanLimit,
+			TotalMatchCount = allMatches.Count,
+			ResultsTruncated = allMatches.Count > matches.Count,
+			TruncationReason = snapshot.IsTruncated ? snapshot.TruncationReason ?? "capture-limit" : null,
+			NextStep = snapshot.IsTruncated
+				? "Increase --scan-limit and repeat this search. Zero matches do not establish absence."
+				: allMatches.Count > matches.Count ? "Increase --limit or narrow the selector to return the remaining matches." : null,
 		};
 	}
 
@@ -199,6 +213,15 @@ public sealed class FindSnapshotService(TreeSnapshotService? treeService = null)
 
 public sealed class FindResultData
 {
+	public bool SearchComplete { get; set; }
+	public int ScannedNodeCount { get; set; }
+	public int? ScanLimit { get; set; }
+	/// <summary>Matches in the captured nodes; a lower bound when SearchComplete is false.</summary>
+	public int TotalMatchCount { get; set; }
+	public bool ResultsTruncated { get; set; }
+	public string? TruncationReason { get; set; }
+	public string? NextStep { get; set; }
+
 	public int MatchCount { get; set; }
 
 	public int MaxMatches { get; set; }

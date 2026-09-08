@@ -3,7 +3,7 @@
 | Scenario | Application | Coverage |
 |---|---|---|
 | `foundation` | none | help, version, process discovery, isolated config get/set/clear/reset, JSON config values, invalid-argument envelope |
-| `wpf-inspection` | HelloWorld | PID and window-title targeting, listener reuse/no-inject, ping, pipe status, flat/nested and text tree output, deep find, node, props, selectors, wait, no-match, action and arbitrary-invoke policy failures |
+| `wpf-inspection` | HelloWorld | PID and window-title targeting, listener reuse/no-inject, ping, pipe status, raw nested/text tree output, semantic default, incomplete-search versus no-match, deep find, node, props, selectors, wait, action and arbitrary-invoke policy failures |
 | `wpf-actions` | HelloWorld | focus, type, key, set, routed-event raise, click, drag, known invoke operations, delayed wait, popup, list, expander, scroll content, hosted WinForms controls, durable state reads |
 | `wpf-navigation` | BasicTestHarness | menu/menu item, text box, button, expander, popup, list box/item, tab control/item, secondary window |
 | `winforms-controls` | WinFormsExampleApp | form, text box, label, button, check box, combo box, secondary form, durable state reads |

@@ -116,6 +116,7 @@ public sealed class CliProcessesDefaults
 
 public sealed class CliTreeDefaults
 {
+	public string View { get; set; } = "semantic";
 	public TreeShape Shape { get; set; } = TreeShape.Flat;
 	public string? Root { get; set; }
 	public int MaxDepth { get; set; } = -1;

@@ -155,6 +155,7 @@ public sealed class CliDefaultsStore
 		RequireOneOf(defaults.Common.Format, "common.format", "json", "text");
 		RequireOneOf(defaults.Common.After, "common.after", "none", "target", "tree");
 		RequireDefinedEnum(defaults.Commands.Tree.Shape, "commands.tree.shape");
+		RequireOneOf(defaults.Commands.Tree.View, "commands.tree.view", "raw", "semantic");
 		RequireStringList(defaults.Commands.Tree.Props, "commands.tree.props");
 		RequireNullableStringList(defaults.Commands.Tree.TypeNames, "commands.tree.typeNames");
 		RequireStringList(defaults.Commands.Find.Include, "commands.find.include");

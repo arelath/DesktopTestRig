@@ -24,6 +24,7 @@ public sealed class PropertyDiagnosticsTests
 		session.Session.Snapshot = Snapshot();
 		var services = CliTestHost.CreateServices(targetResolver: new FakeTargetResolver(), appSessionService: session);
 		var args = new List<string> { command, "--pid", "1234", "--props", "Name,Text,Header,Broken" };
+		if (command == "tree") args.AddRange(["--view", "raw"]);
 		if (command is "node" or "props") args.AddRange(["--target", "root-0001"]);
 		if (command == "find") args.AddRange(["--name", "Test", "--include-properties"]);
 		if (debug) args.Add("--debug");

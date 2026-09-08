@@ -33,6 +33,7 @@ public static class CliRootCommand
 		"raise",
 		"invoke",
 		"version",
+		"schema",
 	};
 
 	public static RootCommand Create() => Create(actions: null);
@@ -66,13 +67,16 @@ public static class CliRootCommand
 		root.Add(CreateTargetCommand("raise", "Raise an event on a target node.", actions, static actionSet => actionSet.Raise, AddRaiseOptions));
 		root.Add(CreateTargetCommand("invoke", "Invoke target-side code.", actions, static actionSet => actionSet.Invoke, AddInvokeOptions));
 		root.Add(CreateVersionCommand(actions));
+		var schema = new Command("schema", "Describe commands, arguments, defaults, examples, and JSON response contracts without attaching.");
+		schema.Add(CreateOption<string>("--command", "Optional command path, for example find or 'pipe status'."));
+		root.Add(schema);
 
 		return root;
 	}
 
 	public static string HelpText =>
 		$"{DesktopTestRig.ProductInfo.Name} CLI{Environment.NewLine}"
-		+ "Commands: config, processes, ping, pipe status, tree, find, node, props, selectors, screenshot, wait, stream, record, click, wheel, drag, focus, type, key, set, raise, invoke, version";
+		+ "Commands: config, processes, ping, pipe status, tree, find, node, props, selectors, screenshot, wait, stream, record, click, wheel, drag, focus, type, key, set, raise, invoke, version, schema";
 
 	public static string GetCommandPath(IReadOnlyList<string> args)
 	{
@@ -226,8 +230,9 @@ public static class CliRootCommand
 	{
 		command.Add(CreateOption<string>("--root", "Root target ID."));
 		command.Add(CreateOption<string>("--target-id", "Root target ID."));
-		command.Add(CreateOption<int>("--max-depth", "Maximum tree depth."));
-		command.Add(CreateOption<int>("--limit", "Maximum node count."));
+		command.Add(CreateOption<int>("--max-depth", "Maximum output depth; -1 is unlimited. Semantic view counts retained ancestors."));
+		command.Add(CreateOption<int>("--limit", "Positive maximum captured node count."));
+		command.Add(CreateOption<string>("--view", "Tree view: semantic (default) or raw. Semantic collapses template wrappers; use node --subtree to expand a target."));
 		command.Add(CreateParsedOption<TreeShape>("--shape", "Tree shape: flat or nested.", CliValueParser.ParseTreeShape));
 		command.Add(CreateOption<string>("--props", "Comma-separated property names."));
 		command.Add(CreateOption<bool>("--include-hidden", "Include hidden nodes."));
@@ -248,7 +253,9 @@ public static class CliRootCommand
 		command.Add(CreateOption<bool>("--visible", "Require visible nodes."));
 		command.Add(CreateOption<bool>("--enabled", "Require enabled nodes."));
 		command.Add(CreateOption<bool>("--case-sensitive", "Use case-sensitive matching."));
-		command.Add(CreateOption<int>("--limit", "Maximum match count."));
+		command.Add(CreateOption<int>("--limit", "Positive maximum returned match count; independent of search coverage."));
+		if (command.Name == "find")
+			command.Add(CreateOption<int>("--scan-limit", "Maximum nodes captured for search, independent of --limit. Defaults to commands.tree.limit (5000)."));
 		command.Add(CreateOption<bool>("--require-match", "Fail when no matches are found."));
 		command.Add(CreateOption<bool>("--include-path", "Include slash-style node paths."));
 		command.Add(CreateOption<bool>("--include-properties", "Include selected properties."));
@@ -492,6 +499,9 @@ public static class CliRootCommand
 			or "--target"
 			or "--max-depth"
 			or "--limit"
+			or "--scan-limit"
+			or "--view"
+			or "--command"
 			or "--include"
 			or "--shape"
 			or "--props"

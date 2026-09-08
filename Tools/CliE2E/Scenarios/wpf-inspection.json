@@ -33,17 +33,36 @@
     },
     {
       "name": "tree-nested",
-      "arguments": ["tree", "--shape", "nested", "--max-depth", "4", "--limit", "100", "--props", "none", "--include-path"],
+      "arguments": ["tree", "--view", "raw", "--shape", "nested", "--max-depth", "4", "--limit", "100", "--props", "none", "--include-path"],
       "targetBound": true,
       "assertions": [{ "path": "data.nodeCount", "minimum": 1 }],
       "contains": ["\"shape\":\"nested\""]
     },
     {
       "name": "tree-text-output",
-      "arguments": ["tree", "--max-depth", "2", "--limit", "20", "--props", "none", "--format", "text"],
+      "arguments": ["tree", "--view", "raw", "--max-depth", "2", "--limit", "20", "--props", "none", "--format", "text"],
       "targetBound": true,
       "parseJson": false,
       "contains": ["shape:", "nodes:", "dft-target-"]
+    },
+    {
+      "name": "semantic-default",
+      "arguments": ["tree", "--limit", "20000"],
+      "targetBound": true,
+      "contains": ["TextBox1"],
+      "assertions": [
+        { "path": "data.view", "equals": "semantic" },
+        { "path": "data.truncated", "equals": "False" },
+        { "path": "data.omittedNodeCount", "minimum": 1 }
+      ]
+    },
+    {
+      "name": "incomplete-search",
+      "arguments": ["find", "--name", "DefinitelyMissingControl", "--scan-limit", "1", "--require-match"],
+      "targetBound": true,
+      "expectedExitCode": 11,
+      "expectedErrorCode": "search-incomplete",
+      "assertions": [{ "path": "error.details.searchComplete", "equals": "False" }]
     },
     {
       "name": "find-deep-control-with-narrow-output",

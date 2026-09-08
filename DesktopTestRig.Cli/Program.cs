@@ -31,9 +31,10 @@ public static class Program
 
 		if (CliRootCommand.IsHelpRequest(args))
 		{
-			stdout.WriteLine(CliRootCommand.HelpText);
-			return 0;
+			return CliDiscovery.WriteHelp(args, stdout, stderr);
 		}
+		if (commandPath == "schema")
+			return CliDiscovery.WriteSchema(args, stdout, stopwatch);
 
 		services ??= new CliServices();
 		var executionContext = new CliCommandExecutionContext(args, services, stdout, stderr, stopwatch);
@@ -221,14 +222,23 @@ public static class Program
 		};
 	}
 
-	private static TreeSnapshotData ExecuteTree(string[] args, CliServices services, CliDefaults defaults, CliCommonOptions commonOptions)
+	private static object ExecuteTree(string[] args, CliServices services, CliDefaults defaults, CliCommonOptions commonOptions)
 	{
+		var view = (CliArgumentReader.GetOption(args, "--view") ?? defaults.Commands.Tree.View).ToLowerInvariant();
+		if (view is not ("raw" or "semantic"))
+			throw new AutomationException(AutomationErrorCodes.InvalidArguments, "--view must be raw or semantic.");
 		var includeHidden = CliArgumentReader.HasOption(args, "--include-hidden") || defaults.Commands.Tree.IncludeHidden;
 		var propertySelection = GetTreePropertySelection(args, defaults, includeHidden);
-		var properties = propertySelection.RequestProperties;
+		var properties = view == "semantic"
+			? SemanticTreeService.RequestProperties.Concat(CliArgumentReader.HasOption(args, "--props") ? propertySelection.RequestProperties : []).Distinct(StringComparer.Ordinal).ToArray()
+			: propertySelection.RequestProperties;
 		var typeNames = GetTreeTypeNames(args, defaults);
 
 		var limit = CliArgumentReader.GetInt(args, "--limit", defaults.Commands.Tree.Limit);
+		ValidatePositiveLimit(limit, "--limit");
+		var maxDepth = CliArgumentReader.GetInt(args, "--max-depth", defaults.Commands.Tree.MaxDepth);
+		if (maxDepth < -1)
+			throw new AutomationException(AutomationErrorCodes.InvalidArguments, "--max-depth must be -1 (unlimited) or nonnegative.");
 		using var session = OpenSession(services, commonOptions);
 		var snapshot = ReadSnapshot(session, commonOptions, properties, limit);
 		var options = new TreeSnapshotOptions
@@ -236,31 +246,41 @@ public static class Program
 			IncludeMissingPropertyDiagnostics = commonOptions.Debug,
 			Shape = GetTreeShapeOption(args, defaults.Commands.Tree.Shape),
 			RootTargetId = CliArgumentReader.GetOption(args, "--root", "--target-id") ?? defaults.Commands.Tree.Root,
-			MaxDepth = CliArgumentReader.GetInt(args, "--max-depth", defaults.Commands.Tree.MaxDepth),
+			MaxDepth = maxDepth,
 			Limit = limit,
 			IncludeHidden = includeHidden,
 			IncludeTypeNames = typeNames.Count != 0,
 			TypeNames = typeNames,
 			IncludePath = CliArgumentReader.HasOption(args, "--include-path") || defaults.Commands.Tree.IncludePath,
 			UseShortIds = commonOptions.UseShortIds,
-			Properties = propertySelection.OutputProperties,
+			Properties = view == "semantic" && !CliArgumentReader.HasOption(args, "--props") ? [] : propertySelection.OutputProperties,
 			SuppressProperties = propertySelection.SuppressProperties,
 		};
-		return new TreeSnapshotService().Shape(snapshot, options);
+		return view == "semantic" ? new SemanticTreeService().Shape(snapshot, options) : new TreeSnapshotService().Shape(snapshot, options);
 	}
 
 	private static FindResultData ExecuteFind(string[] args, CliServices services, CliDefaults defaults, CliCommonOptions commonOptions)
 	{
 		var outputProperties = GetRequestedProperties(args, defaults);
-		using var session = OpenSession(services, commonOptions);
 		var options = CreateFindOptions(args, defaults, commonOptions, outputProperties);
+		ValidatePositiveLimit(options.Limit, "--limit");
+		options.ScanLimit = CliArgumentReader.GetInt(args, "--scan-limit", defaults.TreeLimit);
+		ValidatePositiveLimit(options.ScanLimit.Value, "--scan-limit");
+		using var session = OpenSession(services, commonOptions);
 		var requestProperties = GetFindRequestProperties(options, outputProperties);
-		var snapshot = ReadSnapshot(session, commonOptions, requestProperties, Math.Max(defaults.TreeLimit, options.Limit));
+		var snapshot = ReadSnapshot(session, commonOptions, requestProperties, options.ScanLimit.Value);
 		var result = new FindSnapshotService().Find(snapshot, options);
-		if (result.MatchCount == 0 && CliArgumentReader.HasOption(args, "--require-match"))
-			throw new AutomationException(AutomationErrorCodes.NoMatch, "No matching nodes were found.");
+		if (result.MatchCount == 0 && (CliArgumentReader.HasOption(args, "--require-match") || defaults.Commands.Find.RequireMatch))
+			throw new AutomationException(result.SearchComplete ? AutomationErrorCodes.NoMatch : AutomationErrorCodes.SearchIncomplete,
+				result.SearchComplete ? "No matching nodes were found." : "Search coverage is incomplete; absence cannot be established. Increase --scan-limit.", result);
 
 		return result;
+	}
+
+	private static void ValidatePositiveLimit(int value, string option)
+	{
+		if (value <= 0)
+			throw new AutomationException(AutomationErrorCodes.InvalidArguments, $"{option} must be positive.");
 	}
 
 	private static NodeResultData ExecuteNode(string[] args, CliServices services, CliDefaults defaults, CliCommonOptions commonOptions)

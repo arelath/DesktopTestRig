@@ -227,6 +227,20 @@ public static class CliOutput
 
 	private static void WriteTreeText(object? data, TextWriter writer)
 	{
+		if (data is SemanticTreeData semantic)
+		{
+			writer.WriteLine($"view: semantic; nodes: {semantic.NodeCount}/{semantic.CapturedNodeCount}; omitted: {semantic.OmittedNodeCount}");
+			if (semantic.Truncated) writer.WriteLine($"truncated: {semantic.TruncationReason ?? "yes"}");
+			void WriteSemantic(SemanticTreeNode node)
+			{
+				writer.WriteLine($"{new string(' ', node.Depth * 2)}{node.TargetId} {node.Type} {JsonSerializer.Serialize(node.Label)} {JsonSerializer.Serialize(node.Properties)}");
+				WritePropertyDiagnostics(node.PropertyDiagnostics, writer);
+				foreach (var child in node.Children ?? []) WriteSemantic(child);
+			}
+			foreach (var node in semantic.Shape == "flat" ? semantic.Nodes : semantic.Roots) WriteSemantic(node);
+			writer.WriteLine(semantic.ExpandHint);
+			return;
+		}
 		if (data is not TreeSnapshotData tree)
 		{
 			writer.WriteLine(ToJson(CliResponseFactory.Success("tree", data, System.Diagnostics.Stopwatch.StartNew()), pretty: true, hideEmpty: true));

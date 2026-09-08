@@ -8,12 +8,12 @@ using NUnit.Framework;
 public sealed class TreeCommandHandlerTests
 {
 	[Test]
-	public void TreeReturnsDefaultJsonSnapshot()
+	public void TreeRawViewReturnsJsonSnapshot()
 	{
 		var session = new FakeAppSessionService();
 		var services = CliTestHost.CreateServices(targetResolver: new FakeTargetResolver(), appSessionService: session);
 
-		var result = CliTestHost.Run(new[] { "tree", "--pid", "1234" }, services);
+		var result = CliTestHost.Run(new[] { "tree", "--view", "raw", "--pid", "1234" }, services);
 
 		Assert.That(result.ExitCode, Is.EqualTo(0));
 		Assert.That(result.Stdout, Does.Contain("\"shape\":\"flat\""));
@@ -27,7 +27,7 @@ public sealed class TreeCommandHandlerTests
 	{
 		var services = CliTestHost.CreateServices(targetResolver: new FakeTargetResolver(), appSessionService: new FakeAppSessionService());
 
-		var result = CliTestHost.Run(new[] { "tree", "--pid", "1234", "--shape", "nested", "--root", "0002", "--props", "Text", "--include-path" }, services);
+		var result = CliTestHost.Run(new[] { "tree", "--view", "raw", "--pid", "1234", "--shape", "nested", "--root", "0002", "--props", "Text", "--include-path" }, services);
 
 		Assert.That(result.ExitCode, Is.EqualTo(0));
 		Assert.That(result.Stdout, Does.Contain("\"shape\":\"nested\""));
@@ -41,7 +41,7 @@ public sealed class TreeCommandHandlerTests
 		var session = new FakeAppSessionService();
 		var services = CliTestHost.CreateServices(targetResolver: new FakeTargetResolver(), appSessionService: session);
 
-		var result = CliTestHost.Run(new[] { "tree", "--pid", "1234", "--limit", "1500", "--format", "text" }, services);
+		var result = CliTestHost.Run(new[] { "tree", "--view", "raw", "--pid", "1234", "--limit", "1500", "--format", "text" }, services);
 
 		Assert.That(result.ExitCode, Is.EqualTo(0));
 		Assert.That(result.Stdout, Does.Contain("shape: flat"));
@@ -54,7 +54,7 @@ public sealed class TreeCommandHandlerTests
 		var session = new FakeAppSessionService();
 		var services = CliTestHost.CreateServices(targetResolver: new FakeTargetResolver(), appSessionService: session);
 
-		var result = CliTestHost.Run(new[] { "tree", "--pid", "1234", "--type-names", "Button", "--props", "none" }, services);
+		var result = CliTestHost.Run(new[] { "tree", "--view", "raw", "--pid", "1234", "--type-names", "Button", "--props", "none" }, services);
 
 		Assert.That(result.ExitCode, Is.EqualTo(0));
 		Assert.That(result.Stdout, Does.Contain("button-0002"));

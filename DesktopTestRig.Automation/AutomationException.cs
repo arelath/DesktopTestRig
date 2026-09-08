@@ -26,6 +26,7 @@ public static class AutomationErrorCodes
 	public const string InvalidArguments = "invalid-arguments";
 	public const string InvalidConfig = "invalid-config";
 	public const string NoMatch = "no-match";
+	public const string SearchIncomplete = "search-incomplete";
 	public const string NotImplemented = "not-implemented";
 	public const string PipeBusy = "pipe-busy";
 	public const string PipeFailed = "pipe-failed";
